@@ -1426,7 +1426,7 @@ function buyButton(price, owned, equipped, onEquip, onBuy) {
 function renderBoards(list) {
   $('shopHint').textContent = 'Change the board you slice on.';
   for (const bd of BOARDS) {
-    const owned = hasBoard(bd.id), equipped = (hasBoard(save.board) ? save.board : 'oak') === bd.id;
+    const owned = hasBoard(bd.id), equipped = currentBoard() === bd.id;
     const row = document.createElement('div');
     row.className = 'knife' + (equipped ? ' equipped' : '');
     row.innerHTML = `<div class="boardThumb"></div>
@@ -2018,10 +2018,13 @@ function paintBoard(id) {
   return c.toDataURL('image/jpeg', 0.9);
 }
 const boardCache = new Map();
-const boardImage = (id) => { if (!boardCache.has(id)) boardCache.set(id, paintBoard(id)); return boardCache.get(id); };
-const hasBoard = (id) => save.unlockAll || id === 'oak' || (save.boards || []).includes(id);
+const isBoard = (id) => BOARDS.some(b => b.id === id);
+// unknown ids fall back to oak: painting an unknown id would leave a blank canvas, which encodes as a black JPEG
+const boardImage = (id) => { if (!isBoard(id)) id = 'oak'; if (!boardCache.has(id)) boardCache.set(id, paintBoard(id)); return boardCache.get(id); };
+const hasBoard = (id) => isBoard(id) && (save.unlockAll || id === 'oak' || (save.boards || []).includes(id));
+const currentBoard = () => (hasBoard(save.board) ? save.board : 'oak');
 function applyBoard() {
-  const id = hasBoard(save.board) ? save.board : 'oak';
+  const id = currentBoard();
   try { $('bg').style.background = `radial-gradient(ellipse at center, rgba(0,0,0,0) 35%, rgba(0,0,0,.6) 100%), url(${boardImage(id)}) center / cover`; } catch (e) {}
 }
 applyBoard();
