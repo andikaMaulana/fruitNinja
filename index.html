@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Fruit Slash 3D</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3a2414">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>
   html, body {
     margin: 0; height: 100%; overflow: hidden;
@@ -166,8 +173,8 @@
 </style>
 <script type="importmap">
 { "imports": {
-  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  "three": "./vendor/three/three.module.js",
+  "three/addons/": "./vendor/three/addons/"
 } }
 </script>
 </head>
@@ -1411,6 +1418,7 @@ function screenItems(name) {
       { id: 'sound', label: save.sound ? 'SOUND: ON' : 'SOUND: OFF', fruit: 'plum', color: save.sound ? 0x3fae4a : 0x777777, x: -0.3, y: -0.02, size: 0.85, stay: true, action: toggleSound },
       { id: 'fullscreen', label: 'FULLSCREEN', fruit: 'orange', color: 0xd99a1e, x: 0, y: 0.04, size: 0.85, stay: true, action: toggleFullscreen },
       { id: 'unlock', label: save.unlockAll ? 'UNLOCK ALL: ON' : 'UNLOCK ALL: OFF', fruit: 'apple', color: save.unlockAll ? 0xe23b8c : 0x777777, x: 0.3, y: -0.02, size: 0.85, stay: true, action: toggleUnlockAll },
+      ...(installPrompt ? [{ id: 'install', label: 'INSTALL APP', fruit: 'lemon', color: 0x2a8fd6, x: -0.4, y: -0.32, size: 0.58, action: installApp }] : []),
       BACK(() => goScreen('main')),
     ];
     case 'over': return [
@@ -2142,6 +2150,23 @@ function frame() {
   drawTrail(now);
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
+}
+
+// ---------- PWA: offline cache + "Install app" ----------
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+var installPrompt = null; // set when the browser offers installation
+addEventListener('beforeinstallprompt', (ev) => {
+  ev.preventDefault(); installPrompt = ev;
+  if (screen === 'options') goScreen('options', 0); // show the Install item right away
+});
+addEventListener('appinstalled', () => { installPrompt = null; });
+async function installApp() {
+  if (!installPrompt) return;
+  const p = installPrompt; installPrompt = null;
+  try { await p.prompt(); await p.userChoice; } catch (e) {}
+  if (screen === 'options') goScreen('options', 0);
 }
 
 updateHud();
