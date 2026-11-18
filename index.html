@@ -140,6 +140,7 @@
   .popup.combo { font-size: 36px; color: #ffd23f; }
   .popup.piece { font-size: 20px; color: #fff6c8; }
   .popup.streak { font-size: 30px; color: #ff8a3d; }
+  .popup.crit { font-size: 40px; color: #ff5a28; letter-spacing: 2px; -webkit-text-stroke: 1.5px #fff3c0; }
   #streak { display: flex; align-items: center; gap: 8px; margin: 4px 0 2px; }
   #streak.hidden { display: none; }
   #streakX { font-size: 24px; color: #ff8a3d; }
@@ -369,6 +370,10 @@ const FRUITS = [
   { id: 'lemon', r: 0.72, juice: 0xffee55, flesh: 0xfff59a },
   { id: 'kiwi', r: 0.7, juice: 0x9be05a, flesh: 0x8fd14f },
   { id: 'plum', r: 0.75, juice: 0xc04080, flesh: 0xffcf5a },
+  { id: 'banana', r: 0.42, juice: 0xfff0c4, flesh: 0xfff0c0 },
+  { id: 'pineapple', r: 0.82, juice: 0xffe066, flesh: 0xffd84a },
+  { id: 'strawberry', r: 0.55, juice: 0xe8102a, flesh: 0xff5a6a },
+  { id: 'dragonfruit', r: 0.72, juice: 0xf4dbe8, flesh: 0xfafaf6 },
   // special: a hard fruit that needs 3 hits (cracks first); never picked at random
   { id: 'coconut', r: 0.85, juice: 0xf1ecdc, flesh: 0xfbf8ee, special: true, hp: 3 },
 ];
@@ -469,6 +474,43 @@ const SKINS = {
     c = mixC(c, [60, 40, 20], ss(0.04, 0, Math.min(v, 1 - v)));
     return [c[0], c[1], c[2], fuzz * 0.8 + n1 * 0.2];
   }),
+  banana: () => paintSkin(256, 256, 3, (u, v) => {
+    const d = Math.abs(((u * 5) % 1) - 0.5) * 2;                  // 5 long ridges
+    const speck = ss(0.82, 0.92, vnoise(u * 96, v * 48, 96));
+    let c = mixC([252, 216, 62], [232, 188, 38], fbm(u, v, 8, 8, 3, 21));
+    c = mixC(c, [150, 172, 52], ss(0.16, 0.03, v) * 0.7 + ss(0.84, 0.97, v) * 0.5); // greenish ends
+    c = mixC(c, [96, 64, 26], speck * 0.7);                        // ripe brown specks
+    c = mixC(c, [58, 40, 18], Math.min(1, ss(0.04, 0, v) + ss(0.965, 1, v)));       // dark tips
+    c = c.map(x => x * (1 - 0.12 * ss(0.85, 1, d)));
+    return [c[0], c[1], c[2], 0.5 + 0.4 * ss(0.8, 1, d)];
+  }),
+  pineapple: () => paintSkin(256, 256, 7, (u, v) => {
+    // diamond lattice of scales, each with a dark "eye"
+    const a = u * 12 + v * 8, b = u * 12 - v * 8;
+    const fa = a - Math.floor(a) - 0.5, fb = b - Math.floor(b) - 0.5;
+    const e = Math.max(Math.abs(fa), Math.abs(fb)) * 2, eye = ss(0.22, 0.06, Math.hypot(fa, fb));
+    let c = mixC([140, 88, 28], [218, 166, 62], (1 - e) * 0.8 + fbm(u, v, 8, 8, 2, 22) * 0.2);
+    c = mixC(c, [70, 44, 16], ss(0.8, 1, e));
+    c = mixC(c, [74, 54, 20], eye);
+    c = mixC(c, [120, 128, 46], ss(0.75, 0.98, v) * 0.45);
+    return [c[0], c[1], c[2], (1 - e) * 0.8 + eye * 0.3];
+  }),
+  strawberry: () => paintSkin(256, 256, 5, (u, v) => {
+    const a = u * 16 + v * 10, b = u * 16 - v * 10;
+    const d = Math.hypot(a - Math.floor(a) - 0.5, b - Math.floor(b) - 0.5);
+    const seed = ss(0.15, 0.07, d), dimple = ss(0.32, 0.12, d);
+    let c = mixC([196, 14, 28], [238, 42, 48], fbm(u, v, 6, 6, 3, 23));
+    c = mixC(c, [242, 140, 120], ss(0.84, 0.97, v) * 0.6);        // paler near the leaves
+    c = c.map(x => x * (1 - 0.18 * dimple));
+    c = mixC(c, [244, 208, 84], seed);                              // golden seeds
+    return [c[0], c[1], c[2], 1 - dimple * 0.6 + seed * 0.5];
+  }),
+  dragonfruit: () => paintSkin(256, 256, 2, (u, v) => {
+    const n = fbm(u, v, 6, 5, 4, 24);
+    let c = mixC([210, 30, 118], [252, 96, 164], n);
+    c = mixC(c, [150, 20, 80], ss(0.55, 0.75, fbm(u, v, 16, 3, 2, 25)) * 0.35);
+    return [c[0], c[1], c[2], 0.5 + 0.1 * n];
+  }),
   coconut: () => paintSkin(256, 256, 6, (u, v) => {
     const fiber = fbm(u, v, 64, 4, 3, 13), blot = fbm(u, v, 6, 6, 3, 14);
     let c = mixC([62, 38, 20], [138, 96, 58], fiber * 0.7 + blot * 0.3);
@@ -498,6 +540,10 @@ const SKIN_MAT = {
   kiwi: { roughness: 0.95, sheen: 1, sheenColor: 0xc8a070, sheenRoughness: 0.7, normalScale: 1 },
   plum: { roughness: 0.45, sheen: 0.8, sheenColor: 0x9a90c0, sheenRoughness: 0.5, clearcoat: 0.3, normalScale: 0.6 },
   coconut: { roughness: 0.95, sheen: 0.6, sheenColor: 0x8a6a48, sheenRoughness: 0.9, normalScale: 1.3 },
+  banana: { roughness: 0.55, clearcoat: 0.2, clearcoatRoughness: 0.5, normalScale: 0.5 },
+  pineapple: { roughness: 0.8, normalScale: 1.4 },
+  strawberry: { roughness: 0.35, clearcoat: 0.7, clearcoatRoughness: 0.2, normalScale: 0.9 },
+  dragonfruit: { roughness: 0.4, clearcoat: 0.4, clearcoatRoughness: 0.3, normalScale: 0.3 },
 };
 
 // Side profile of each fruit (bottom -> top), revolved with LatheGeometry
@@ -523,6 +569,19 @@ function fruitProfile(def) {
       case 'kiwi': y *= 1.22; break;
       case 'plum': r *= 1 + 0.04 * s; y *= 1.05; if (s > 0) y -= 0.12 * R * dimple; break;
       case 'coconut': r *= 1 - 0.06 * s; y *= 1.1; break;
+      case 'banana': {                       // long, slightly blunt; the stalk end is drawn out
+        const tip = s > 0 ? Math.pow(s, 14) : 0;
+        r *= (1 - 0.15 * Math.abs(s)) * (1 - 0.6 * tip);
+        y = y * 2.3 + R * 0.35 * tip;
+        break;
+      }
+      case 'pineapple': r *= 1 - 0.08 * s; y *= 1.35; break;
+      case 'strawberry': {                   // wide shoulders, pointed tip
+        r *= 1.1 * (0.5 + 0.5 * Math.pow((s + 1) / 2, 0.7));
+        y *= 1.15; if (s > 0) y -= 0.12 * R * dimple;
+        break;
+      }
+      case 'dragonfruit': r *= 1 - 0.05 * s; y *= 1.28; break;
     }
     pts.push(new THREE.Vector2(i === 0 || i === N ? 0 : Math.max(0, r), y));
   }
@@ -625,6 +684,54 @@ function paintCap(def, pts, box) {
       for (let i = 0; i < 8; i++) { g.beginPath(); g.ellipse(0, midY, 0.3 * R * (i / 8), 0.46 * R, 0, 0, Math.PI * 2); g.stroke(); }
       break;
     }
+    case 'banana': {
+      fill(1, '#e3bc34');                                           // peel
+      fill(0.93, radial([[0, '#fcf4d6'], [1, '#efe0a6']], box.maxY)); // creamy flesh
+      ell(0, midY, 0.07 * R, (box.maxY - midY) * 0.82, 0, 'rgba(205,175,110,.45)');
+      for (let i = 0; i < 16; i++) // tiny seeds down the middle
+        ell(rand(-0.02, 0.02) * R, midY + (i / 15 - 0.5) * 1.5 * (box.maxY - midY), 0.014 * R, 0.02 * R, 0, '#5a4020');
+      break;
+    }
+    case 'pineapple': {
+      fill(1, '#6b4a1c'); fill(0.955, '#c99c30');                   // rind and eyes
+      fill(0.91, radial([[0, '#ffeb8a'], [1, '#f4c83a']], box.maxY));
+      g.strokeStyle = 'rgba(255,250,200,.35)'; g.lineWidth = 0.012 * R;
+      for (let i = 0; i < 60; i++) {                                // fibres radiating from the core
+        const a = (i / 60) * Math.PI * 2;
+        g.beginPath(); g.moveTo(Math.cos(a) * 0.12 * R, midY + Math.sin(a) * 0.5 * R);
+        g.lineTo(Math.cos(a) * box.maxX * 0.88, midY + Math.sin(a) * (box.maxY - midY) * 0.88); g.stroke();
+      }
+      ell(0, midY, 0.13 * R, (box.maxY - midY) * 0.9, 0, '#f8eca6'); // pale core
+      for (let i = 0; i < 26; i++) {
+        const a = (i / 26) * Math.PI * 2;
+        ell(Math.cos(a) * box.maxX * 0.93, midY + Math.sin(a) * (box.maxY - midY) * 0.93, 0.03 * R, 0.03 * R, 0, '#8a6a2a');
+      }
+      break;
+    }
+    case 'strawberry': {
+      fill(1, '#c8102a');
+      fill(0.93, radial([[0, '#fff2f2'], [0.45, '#ff9fae'], [1, '#e8283e']], box.maxY));
+      g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 0.02 * R;
+      const top = pts[pts.length - 1].y;
+      for (let i = 0; i < 7; i++) {                                 // white streaks fanning from the top
+        const x = (i / 6 - 0.5) * box.maxX * 1.2;
+        g.beginPath(); g.moveTo(0, top); g.quadraticCurveTo(x * 0.3, midY, x, pts[0].y + (box.maxY - pts[0].y) * 0.25); g.stroke();
+      }
+      for (let i = 0; i < 22; i++) {                                // seeds on the edge
+        const a = (i / 22) * Math.PI * 2;
+        ell(Math.cos(a) * box.maxX * 0.96, midY + Math.sin(a) * (box.maxY - midY) * 0.96, 0.025 * R, 0.035 * R, a, '#f2d14a');
+      }
+      break;
+    }
+    case 'dragonfruit': {
+      fill(1, '#d8236f'); fill(0.965, '#ff8cc2');                   // magenta skin, pink rind
+      fill(0.935, radial([[0, '#ffffff'], [1, '#efefe8']], box.maxY)); // white flesh
+      for (let i = 0; i < 520; i++) {                               // speckled black seeds
+        const [x, y] = inside(0.88);
+        ell(x, y, 0.011 * R, 0.014 * R, rand(0, 3), '#141414');
+      }
+      break;
+    }
     case 'coconut': {
       fill(1, '#5a3519'); fill(0.955, '#3a2210');                 // husk + hard shell
       fill(0.92, radial([[0, '#ffffff'], [1, '#f1ebda']], box.maxY)); // white meat
@@ -661,6 +768,22 @@ function crackedMaterial(def, stage) {
   return m;
 }
 
+// Lathe shapes are perfectly symmetric; a few fruit get bent afterwards (the banana's curve).
+// Applied identically to the whole fruit and every piece, so the cut pieces still line up.
+const BEND = { banana: 0.6 };
+const bendX = (def, y) => {
+  const k = BEND[def.id]; if (!k) return 0;
+  const L = Math.max(def.box.maxY, -def.box.minY);
+  return k * def.r * (y / L) ** 2;
+};
+function deform(def, geo) {
+  if (!BEND[def.id]) return geo;
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) pos.setX(i, pos.getX(i) + bendX(def, pos.getY(i)));
+  geo.computeVertexNormals();
+  return geo;
+}
+
 // ---------- Fruit pieces: wedges of the lathe that can be cut again and again ----------
 // A piece covers lathe angles [start, start+len]. A half is len = PI, a quarter PI/2, ...
 // Each flat side of the wedge is half of the fruit's profile, showing the juicy flesh.
@@ -692,7 +815,7 @@ function pieceGeos(def, start, len) {
   const skin = new THREE.LatheGeometry(def.pts, seg, start, len);
   const uv = skin.attributes.uv; // keep the skin texture where it was on the whole fruit
   for (let i = 0; i < uv.count; i++) uv.setX(i, (start + uv.getX(i) * len) / (Math.PI * 2));
-  const g = { skin, capA: capAtAngle(def, start), capB: capAtAngle(def, start + len) };
+  const g = { skin: deform(def, skin), capA: deform(def, capAtAngle(def, start)), capB: deform(def, capAtAngle(def, start + len)) };
   def.pieceCache.set(key, g);
   return g;
 }
@@ -715,8 +838,8 @@ for (const def of FRUITS) {
   const ns = m.normalScale; delete m.normalScale;
   def.skinMat = new THREE.MeshPhysicalMaterial({ map, normalMap, normalScale: new THREE.Vector2(ns, ns), ...m });
   def.capMat = new THREE.MeshPhysicalMaterial({ map: paintCap(def, pts, box), roughness: 0.4, clearcoat: 0.9, clearcoatRoughness: 0.2, side: THREE.DoubleSide });
-  def.wholeGeo = new THREE.LatheGeometry(pts, 48);
   def.pts = pts; def.box = box; def.pieceCache = new Map();
+  def.wholeGeo = deform(def, new THREE.LatheGeometry(pts, 48));
 }
 for (const def of FRUITS) if (def.hp) def.crackMats = [null, crackedMaterial(def, 1), crackedMaterial(def, 2)];
 // Golden fruit: a rare, shiny bonus fruit (+10)
@@ -748,6 +871,53 @@ function addStem(def, parent) {
   } else if (def.id === 'orange' || def.id === 'watermelon') {
     const cx = new THREE.Mesh(calyxGeo, calyxMat);
     cx.position.y = top; parent.add(cx);
+  } else if (def.id === 'banana') {            // short stalk at the (bent) top end
+    const st = new THREE.Mesh(bananaStalkGeo, bananaStalkMat);
+    st.position.set(bendX(def, top), top + 0.06, 0); st.rotation.z = -0.35;
+    parent.add(st);
+  } else if (def.id === 'pineapple') {         // spiky crown of leaves
+    for (let i = 0; i < 12; i++) {
+      const pivot = new THREE.Object3D();
+      pivot.position.y = top - 0.06; pivot.rotation.y = i * 2.4;
+      const leaf = new THREE.Mesh(crownLeafGeo, crownMat);
+      leaf.rotation.z = 0.12 + (i % 3) * 0.28;
+      leaf.scale.setScalar(0.75 + (i % 4) * 0.12);
+      pivot.add(leaf); parent.add(pivot);
+    }
+  } else if (def.id === 'strawberry') {        // star-shaped green calyx
+    for (let i = 0; i < 6; i++) {
+      const pivot = new THREE.Object3D();
+      pivot.position.y = top - 0.02; pivot.rotation.y = (i / 6) * Math.PI * 2;
+      const leaf = new THREE.Mesh(leafGeo, leafMat);
+      leaf.scale.set(0.6, 0.6, 1); leaf.rotation.x = Math.PI / 2 + 0.35; // lie down, droop over the shoulder
+      pivot.add(leaf); parent.add(pivot);
+    }
+    const st = new THREE.Mesh(stemGeoShort, leafMat); st.position.y = top + 0.08; parent.add(st);
+  }
+}
+
+const bananaStalkGeo = new THREE.CylinderGeometry(0.035, 0.05, 0.16, 6);
+const bananaStalkMat = new THREE.MeshStandardMaterial({ color: 0x5a4a1e, roughness: 0.9 });
+const crownLeafGeo = new THREE.ConeGeometry(0.07, 0.8, 4, 1).translate(0, 0.4, 0).scale(1, 1, 0.3);
+const crownMat = new THREE.MeshStandardMaterial({ color: 0x3f7f2a, roughness: 0.6 });
+const stemGeoShort = new THREE.CylinderGeometry(0.02, 0.03, 0.14, 5);
+// dragon fruit: leafy scale flaps sticking out of the skin, pink with green tips (whole fruit only)
+const flapMat = new THREE.MeshStandardMaterial({ color: 0xe03a8c, roughness: 0.5, side: THREE.DoubleSide });
+const flapTipMat = new THREE.MeshStandardMaterial({ color: 0x9ccc3a, roughness: 0.5, side: THREE.DoubleSide });
+function addFlaps(def, parent) {
+  const pts = def.pts;
+  const rAt = (y) => { for (let i = 1; i < pts.length; i++) if (pts[i].y >= y) return pts[i].x; return 0; };
+  for (let i = 0; i < 14; i++) {
+    const y = def.box.minY * 0.55 + (def.box.maxY * 0.85 - def.box.minY * 0.55) * (i / 13);
+    const phi = i * 2.39996, r = rAt(y);
+    const out = new THREE.Vector3(Math.sin(phi), 0, Math.cos(phi));
+    const flap = new THREE.Group();
+    const base = new THREE.Mesh(leafGeo, flapMat); base.scale.set(0.9, 0.8, 1);
+    const tip = new THREE.Mesh(leafGeo, flapTipMat); tip.scale.set(0.45, 0.35, 1); tip.position.y = 0.24;
+    flap.add(base, tip);
+    flap.position.copy(out).multiplyScalar(r * 0.97).setY(y);
+    flap.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), out.clone().multiplyScalar(0.55).add(new THREE.Vector3(0, 0.85, 0)).normalize());
+    parent.add(flap);
   }
 }
 
@@ -755,6 +925,7 @@ function makeWholeFruit(def) {
   const g = new THREE.Group();
   g.add(new THREE.Mesh(def.wholeGeo, def.skinMat));
   addStem(def, g);
+  if (def.id === 'dragonfruit') addFlaps(def, g);
   return g;
 }
 
@@ -835,7 +1006,7 @@ const cachedMat = (key, make) => { if (!matCache.has(key)) matCache.set(key, mak
 const juiceMat = (hex) => cachedMat('j' + hex, () => new THREE.MeshPhysicalMaterial({
   color: hex, roughness: 0.06, clearcoat: 1, clearcoatRoughness: 0.05, transparent: true, opacity: 0.85 }));
 const pulpMat = (hex) => cachedMat('p' + hex, () => new THREE.MeshStandardMaterial({ color: hex, roughness: 0.45 }));
-const SEED_COLOR = { watermelon: 0x1a0e08, kiwi: 0x120c06, apple: 0x5a3412 };
+const SEED_COLOR = { watermelon: 0x1a0e08, kiwi: 0x120c06, apple: 0x5a3412, dragonfruit: 0x111111, strawberry: 0xf2d14a };
 const tmpDir = new THREE.Vector3();
 
 function addPart(m, vel, life, s, type, extra = {}) {
@@ -1133,6 +1304,11 @@ const SND = {
   golden: ['powerup-starfruit.wav'],
   hardHit: ['Impact-Coconut-More-Attack.wav'],
   'fruit-coconut': ['Impact-Coconut.wav'],
+  'fruit-banana': ['Impact-Banana.wav'],
+  'fruit-pineapple': ['Impact-Pineapple.wav'],
+  'fruit-strawberry': ['Impact-Strawberry.wav'],
+  'fruit-dragonfruit': ['dragonfruit.wav'],
+  crit: ['Critical.wav'],
   smokeBomb: ['powerup-deflect-explode.wav'],
   mirrorBomb: ['powerup-deflect.wav'],
   tap: ['gutsus-shop-button-tap.wav'],
@@ -1337,6 +1513,14 @@ function addPoints(n) {
   game.score += p;
   return p;
 }
+// Game feel: freeze the world for a moment (hit-stop) and punch the camera in
+function impact(stop, punch) {
+  game.hitstop = Math.max(game.hitstop || 0, stop);
+  game.punch = Math.max(game.punch || 0, punch);
+}
+// Critical slices: swipe faster than this (pixels per millisecond)
+const CRIT_SPEED = 2.4;
+let swipeSpeed = 0, lastCrit = 0;
 // Haptic feedback (Android); silently ignored where unsupported
 function buzz(pattern) {
   if (save.vibrate === false || !navigator.vibrate) return;
@@ -1482,10 +1666,11 @@ function setShop(open) {
   if (open) renderShop();
 }
 // ---------- Progress: stats, daily missions, achievements ----------
-const STATS0 = { fruits: 0, perFruit: {}, pieces: 0, shreds: 0, golden: 0, hard: 0, bombs: 0, bestCombo: 0, games: 0, playTime: 0 };
+const STATS0 = { fruits: 0, perFruit: {}, pieces: 0, shreds: 0, golden: 0, hard: 0, bombs: 0, crits: 0, bestCombo: 0, games: 0, playTime: 0 };
 save.stats = Object.assign({}, STATS0, save.stats || {});
 save.ach = save.ach || {};
-const FRUIT_NAME = { watermelon: 'watermelons', orange: 'oranges', apple: 'apples', lemon: 'lemons', kiwi: 'kiwis', plum: 'plums' };
+const FRUIT_NAME = { watermelon: 'watermelons', orange: 'oranges', apple: 'apples', lemon: 'lemons', kiwi: 'kiwis', plum: 'plums',
+  banana: 'bananas', pineapple: 'pineapples', strawberry: 'strawberries', dragonfruit: 'dragon fruits' };
 
 function toast(title, sub) {
   const d = document.createElement('div');
@@ -1515,7 +1700,8 @@ function ensureMissions() {
   while (list.length < 3) {
     const t = pool.splice(Math.floor(rnd() * pool.length), 1)[0];
     const target = t.targets[Math.floor(rnd() * t.targets.length)];
-    const param = t.kind === 'sliceF' ? Object.keys(FRUIT_NAME)[Math.floor(rnd() * 6)]
+    const fruitIds = Object.keys(FRUIT_NAME);
+    const param = t.kind === 'sliceF' ? fruitIds[Math.floor(rnd() * fruitIds.length)]
       : t.kind === 'score' ? ['classic', 'zen', 'arcade'][Math.floor(rnd() * 3)] : null;
     list.push({ kind: t.kind, target, param, reward: t.reward, best: !!t.best, progress: 0, done: false });
   }
@@ -1550,7 +1736,7 @@ function onTrack(type, value, extra) {
   else if (type === 'games') s.games += 1;
   else if (type === 'piece') s.pieces += 1;
   else {
-    const key = { shred: 'shreds', bomb: 'bombs' }[type] || type;
+    const key = { shred: 'shreds', bomb: 'bombs', crit: 'crits' }[type] || type;
     if (s[key] !== undefined && type !== 'score') s[key] += value;
   }
 
@@ -1604,7 +1790,7 @@ function renderProgress() {
     const mins = Math.floor(s.playTime / 60);
     const rows = [
       ['Fruit sliced', s.fruits], ['Extra pieces cut', s.pieces], ['Fruit shredded', s.shreds],
-      ['Golden fruit', s.golden], ['Coconuts cracked', s.hard], ['Bombs hit', s.bombs],
+      ['Critical slices', s.crits], ['Golden fruit', s.golden], ['Coconuts cracked', s.hard], ['Bombs hit', s.bombs],
       ['Biggest combo', s.bestCombo], ['Games played', s.games],
       ['Time played', mins >= 60 ? `${Math.floor(mins / 60)}h ${mins % 60}m` : `${mins}m`],
       ['Favourite fruit', fav ? `${fav[0]} (${fav[1]})` : '—'],
@@ -2070,9 +2256,23 @@ function sliceFruit(e, dx, dy) {
   if (game.mode !== 'play') return;
   addPoints(1);
   track('slice', 1, def.id);
+  // Critical slice: a really fast swipe (at most one every 0.35 s)
+  const nowT = performance.now();
+  if (swipeSpeed > CRIT_SPEED && nowT - lastCrit > 350) {
+    lastCrit = nowT;
+    const bonus = addPoints(3);
+    popup(bonus ? `CRITICAL! +${bonus}` : 'CRITICAL!', sp.x, sp.y - 60, 'crit');
+    const a = Math.atan2(dy, dx);
+    slashes.push({ x: sp.x, y: sp.y, ang: a, len: screenRadius(pos, e.radius) * 6, t: 0, life: 0.35, color: 'rgba(255,90,40,.95)', core: '#ffffff' });
+    slashes.push({ x: sp.x, y: sp.y, ang: a + 0.08, len: screenRadius(pos, e.radius) * 4.5, t: 0, life: 0.3, color: 'rgba(255,220,120,.9)', core: '#ffffff' });
+    play('crit'); buzz([10, 20, 30]);
+    impact(0.06, 0.45);
+    track('crit');
+  }
   if (e.golden) {
     burst(pos, [0xffd040, 0xfff2a0, 0xffffff], 30, 14, 0.12);
     const bonus = addPoints(10);
+    impact(0.08, 0.5);
     popup(bonus ? `GOLDEN! +${bonus}` : 'GOLDEN!', sp.x, sp.y - 40, 'combo');
     play('golden'); buzz([15, 25, 15]);
     track('golden');
@@ -2229,6 +2429,7 @@ function slicePiece(h, dx, dy) {
     o.shredded = true;
     if (performance.now() - o.t < 4000) {
       const bonus = addPoints(5);
+      impact(0.1, 0.6);
       popup(bonus ? `SHREDDED! +${bonus}` : 'SHREDDED!', sp.x, sp.y - 50, 'combo');
       play('shred'); buzz([20, 30, 40]);
       track('shred');
@@ -2362,6 +2563,7 @@ addEventListener('pointermove', (ev) => {
   for (const ce of (evs.length ? evs : [ev])) {
     const p = pt(ce);
     const seg = Math.hypot(p.x - last.x, p.y - last.y), speed = seg / Math.max(1, p.t - last.t);
+    swipeSpeed = swipeSpeed * 0.6 + speed * 0.4; // smoothed px/ms, used for critical slices
     if (speed > 0.6) swipeDist += seg;
     if (swipeDist > 90 && p.t - lastSwipeSound > 280) { sfx.swipe(); lastSwipeSound = p.t; swipeDist = 0; }
     trySlice(last.x, last.y, p.x, p.y);
@@ -2682,6 +2884,7 @@ function frame() {
     if (c.count > 0 && game.elapsed - c.last > 0.3) {
       if (c.count >= 3) {
         const bonus = addPoints(c.count);
+        if (c.count >= 4) impact(Math.min(0.12, 0.03 + 0.012 * c.count), Math.min(0.8, 0.15 * c.count));
         popup(`${c.count} Fruit Combo!${bonus ? ' +' + bonus : ''}`, c.x, c.y, 'combo');
         sfx.combo(c.count);
         buzz(30);
@@ -2700,6 +2903,8 @@ function frame() {
 
   // Slow motion after a bomb blast: world objects slow down, the blast itself runs in real time
   let ts = 1;
+  // Hit-stop: the world freezes for a few frames on big moments (effects keep playing)
+  if (game.hitstop > 0) { game.hitstop -= dt; ts = 0; }
   if (game.slowmo > 0) {
     game.slowmo -= dt;
     ts = game.slowmo > 0.35 ? 0.2 : THREE.MathUtils.lerp(1, 0.2, Math.max(0, game.slowmo) / 0.35);
@@ -2777,9 +2982,12 @@ function frame() {
     game.shake = Math.max(0, game.shake - dt * 1.6);
     const s = game.shake * game.shake;
     camera.position.x = rand(-1, 1) * s;
+    camera.position.z = 22 - (game.punch || 0) * 1.4;
     camera.position.y = rand(-1, 1) * s;
     camera.rotation.z = rand(-1, 1) * s * 0.03;
-  } else { camera.position.set(0, 0, 22); camera.rotation.z = 0; }
+  } else { camera.position.set(0, 0, 22 - (game.punch || 0) * 1.4); camera.rotation.z = 0; }
+  // Zoom punch eases back out
+  if (game.punch > 0) game.punch = Math.max(0, game.punch - dt * 3.2);
 
   drawSplats(dt);
   drawTrail(now);
