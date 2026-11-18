@@ -97,12 +97,32 @@
   #timer { font-size: 42px; font-weight: 800; line-height: 1.1; }
   #timer.low { color: #ff4b4b; animation: pulse .5s infinite; }
   #powers { font-size: 16px; font-weight: 800; margin-top: 2px; }
-  #powers .freeze { color: #7fd4ff; } #powers .frenzy { color: #ff6b6b; } #powers .x2 { color: #ffd23f; }
+  #powers .freeze { color: #7fd4ff; } #powers .frenzy { color: #ff6b6b; } #powers .x2 { color: #ffd23f; } #powers .mirror { color: #d08aff; }
   #freezeTint {
     position: fixed; inset: 0; pointer-events: none; opacity: 0; transition: opacity .4s;
     background: radial-gradient(ellipse at center, rgba(120,200,255,0) 45%, rgba(120,200,255,.45) 100%);
   }
   #freezeTint.on { opacity: 1; }
+  #mirrorTint {
+    position: fixed; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s;
+    background: radial-gradient(ellipse at center, rgba(160,60,255,0) 50%, rgba(160,60,255,.45) 100%);
+  }
+  #mirrorTint.on { opacity: 1; animation: pulse 0.8s infinite; }
+  /* smoke bomb: drifting grey clouds over the play field (but under the HUD) */
+  #smoke { position: fixed; inset: 0; pointer-events: none; opacity: 0; transition: opacity .6s; overflow: hidden; }
+  #smoke.on { opacity: 1; transition: opacity .25s; }
+  #smoke i {
+    position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%;
+    background: radial-gradient(circle, rgba(105,108,114,.92) 0%, rgba(105,108,114,.7) 40%, rgba(105,108,114,0) 70%);
+    animation: drift 6s ease-in-out infinite alternate;
+  }
+  #smoke i:nth-child(1) { left: -20vmax; top: -10vmax; }
+  #smoke i:nth-child(2) { left: 30vmax; top: -25vmax; animation-delay: -1s; }
+  #smoke i:nth-child(3) { right: -25vmax; top: 5vmax; animation-delay: -2s; }
+  #smoke i:nth-child(4) { left: -10vmax; bottom: -30vmax; animation-delay: -3s; }
+  #smoke i:nth-child(5) { left: 25vmax; bottom: -20vmax; animation-delay: -4s; }
+  #smoke i:nth-child(6) { right: -15vmax; bottom: -35vmax; animation-delay: -5s; }
+  @keyframes drift { to { transform: translate(8vmax, -5vmax) scale(1.15); } }
   .modeLabel {
     position: fixed; transform: translate(-50%, 0); text-align: center; pointer-events: none;
     color: #fff; text-shadow: 0 3px 0 rgba(0,0,0,.6); max-width: 30vw;
@@ -118,6 +138,13 @@
     text-shadow: 0 3px 0 rgba(0,0,0,.6); animation: rise 1s ease-out forwards;
   }
   .popup.combo { font-size: 36px; color: #ffd23f; }
+  .popup.piece { font-size: 20px; color: #fff6c8; }
+  .popup.streak { font-size: 30px; color: #ff8a3d; }
+  #streak { display: flex; align-items: center; gap: 8px; margin: 4px 0 2px; }
+  #streak.hidden { display: none; }
+  #streakX { font-size: 24px; color: #ff8a3d; }
+  #streakBar { width: 110px; height: 7px; background: rgba(255,255,255,.2); border-radius: 4px; overflow: hidden; }
+  #streakBar i { display: block; height: 100%; background: linear-gradient(90deg, #ff5a1f, #ffd23f); }
   .popup.miss { font-size: 44px; color: #ff3b3b; }
   @keyframes rise {
     0% { opacity: 0; transform: translate(-50%, -30%) scale(.6); }
@@ -148,7 +175,7 @@
   .pause-panel .btn { display: block; width: 100%; margin: 10px 0; font-size: 20px; }
   .pause-panel p { margin: 12px 0 2px; font-size: 13px; opacity: .65; }
 
-  #shop {
+  #shop, #progress {
     position: fixed; inset: 0; background: rgba(0,0,0,.65);
     display: flex; align-items: center; justify-content: center; padding: 16px; cursor: default;
   }
@@ -159,6 +186,28 @@
   }
   .shop-head { display: flex; align-items: center; gap: 12px; }
   .shop-head h2 { margin: 0; flex: 1; color: #ffd23f; font-size: 26px; }
+  .tabs { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+  .tab {
+    flex: 1; border: none; border-radius: 10px; padding: 9px 10px; cursor: pointer;
+    background: rgba(255,255,255,.08); color: #fff; font: 700 15px "Segoe UI", system-ui, sans-serif;
+  }
+  .tab.on { background: #ffd23f; color: #3a2414; }
+  .boardThumb { width: 84px; height: 52px; border-radius: 8px; flex: none; background: #2a1a0e center / cover; box-shadow: inset 0 0 0 2px rgba(255,255,255,.15); }
+  .badge { font-size: 22px; width: 44px; text-align: center; flex: none; }
+  .knife.locked { opacity: .55; }
+  .bar { height: 7px; border-radius: 4px; background: rgba(255,255,255,.15); overflow: hidden; margin-top: 6px; }
+  .bar i { display: block; height: 100%; background: linear-gradient(90deg, #4caf50, #b6ff5a); }
+  .reward { font-weight: 800; color: #ffe27a; white-space: nowrap; }
+  .statRow { display: flex; justify-content: space-between; padding: 9px 4px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .statRow b { color: #ffd23f; }
+  #toasts { position: fixed; left: 50%; top: 90px; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; z-index: 5; }
+  .toast {
+    background: linear-gradient(#f1d7a2, #d4a964); color: #4a2a0e; border: 3px solid #6e3f17; border-radius: 10px;
+    padding: 8px 16px; font: 800 15px "Segoe UI", system-ui, sans-serif; box-shadow: 0 5px 0 rgba(0,0,0,.35);
+    animation: toastIn 3.2s ease forwards; white-space: nowrap;
+  }
+  .toast small { display: block; font-weight: 600; opacity: .8; }
+  @keyframes toastIn { 0% { opacity: 0; transform: translateY(-20px) scale(.9); } 10%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-10px); } }
   .shop-head .coins { font-weight: 800; color: #ffe27a; font-size: 18px; }
   .knife {
     display: flex; align-items: center; gap: 14px; padding: 12px;
@@ -171,11 +220,21 @@
   .knife .desc { font-size: 13px; opacity: .75; }
   .knife .btn { font-size: 15px; padding: 8px 14px; white-space: nowrap; }
 </style>
-<script type="importmap">
-{ "imports": {
-  "three": "./vendor/three/three.module.js",
-  "three/addons/": "./vendor/three/addons/"
-} }
+<script>
+  // Choose where Three.js comes from. Browsers block JS modules loaded from file://,
+  // so a double-clicked index.html uses the CDN; served over http(s) (Live Server,
+  // GitHub Pages, installed PWA) it uses the bundled copy in vendor/ and works offline.
+  (function () {
+    var local = location.protocol !== 'file:';
+    var map = { imports: local
+      ? { 'three': './vendor/three/three.module.js', 'three/addons/': './vendor/three/addons/' }
+      : { 'three': 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js',
+          'three/addons/': 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/' } };
+    var s = document.createElement('script');
+    s.type = 'importmap';
+    s.textContent = JSON.stringify(map);
+    document.currentScript.after(s);
+  })();
 </script>
 </head>
 <body>
@@ -185,9 +244,15 @@
 <canvas id="trail"></canvas>
 
 <div id="freezeTint"></div>
+<div id="mirrorTint"></div>
+<div id="smoke"><i></i><i></i><i></i><i></i><i></i><i></i></div>
 
 <div id="hud">
-  <div><div id="score">0</div><div id="best">Best: 0</div><div id="coins">🪙 0</div></div>
+  <div>
+    <div id="score">0</div>
+    <div id="streak" class="hidden"><b id="streakX">×2</b><div id="streakBar"><i></i></div></div>
+    <div id="best">Best: 0</div><div id="coins">🪙 0</div>
+  </div>
   <div id="center"><div id="modeTag"></div><div id="timer" class="hidden"></div><div id="powers"></div></div>
   <div id="lives"><span>✕</span><span>✕</span><span>✕</span></div>
 </div>
@@ -205,14 +270,35 @@
 <div id="shop" class="hidden">
   <div class="panel">
     <div class="shop-head">
-      <h2>Knife Shop</h2>
+      <h2>Shop</h2>
       <div class="coins">🪙 <span id="shopCoins">0</span></div>
       <button id="closeShop" class="btn ghost">✕</button>
     </div>
-    <p style="margin:8px 0 0;opacity:.75;font-size:14px">Every point you score becomes a coin. Each knife slashes in its own colors.</p>
+    <div class="tabs" id="shopTabs">
+      <button class="tab on" data-tab="knives">🔪 Knives</button>
+      <button class="tab" data-tab="boards">🪵 Boards</button>
+    </div>
+    <p id="shopHint" style="margin:8px 0 0;opacity:.75;font-size:14px">Every point you score becomes a coin. Each knife slashes in its own colors.</p>
     <div id="knifeList"></div>
   </div>
 </div>
+
+<div id="progress" class="hidden">
+  <div class="panel">
+    <div class="shop-head">
+      <h2>Progress</h2>
+      <div class="coins">🪙 <span id="progCoins">0</span></div>
+      <button id="closeProgress" class="btn ghost">✕</button>
+    </div>
+    <div class="tabs" id="progTabs">
+      <button class="tab on" data-tab="missions">📜 Daily</button>
+      <button class="tab" data-tab="achievements">🏆 Achievements</button>
+      <button class="tab" data-tab="stats">📊 Stats</button>
+    </div>
+    <div id="progList"></div>
+  </div>
+</div>
+<div id="toasts"></div>
 
 <button id="pauseBtn" class="btn ghost hidden" title="Pause (P / Esc)">❚❚</button>
 <div id="pauseMenu" class="hidden">
@@ -283,6 +369,8 @@ const FRUITS = [
   { id: 'lemon', r: 0.72, juice: 0xffee55, flesh: 0xfff59a },
   { id: 'kiwi', r: 0.7, juice: 0x9be05a, flesh: 0x8fd14f },
   { id: 'plum', r: 0.75, juice: 0xc04080, flesh: 0xffcf5a },
+  // special: a hard fruit that needs 3 hits (cracks first); never picked at random
+  { id: 'coconut', r: 0.85, juice: 0xf1ecdc, flesh: 0xfbf8ee, special: true, hp: 3 },
 ];
 
 // ---------- Procedural noise (value noise, seamless around the fruit) ----------
@@ -381,6 +469,16 @@ const SKINS = {
     c = mixC(c, [60, 40, 20], ss(0.04, 0, Math.min(v, 1 - v)));
     return [c[0], c[1], c[2], fuzz * 0.8 + n1 * 0.2];
   }),
+  coconut: () => paintSkin(256, 256, 6, (u, v) => {
+    const fiber = fbm(u, v, 64, 4, 3, 13), blot = fbm(u, v, 6, 6, 3, 14);
+    let c = mixC([62, 38, 20], [138, 96, 58], fiber * 0.7 + blot * 0.3);
+    // the three "eyes" near the top
+    for (const eu of [0.05, 0.38, 0.71]) {
+      const du = Math.min(Math.abs(u - eu), 1 - Math.abs(u - eu));
+      c = mixC(c, [30, 18, 10], ss(0.045, 0.015, Math.hypot(du * 2.2, (v - 0.9) * 1.6)));
+    }
+    return [c[0], c[1], c[2], fiber * 0.9 + blot * 0.1];
+  }),
   plum: () => paintSkin(256, 256, 2.5, (u, v) => {
     const n1 = fbm(u, v, 4, 4, 4, 11);
     let c = mixC([52, 10, 48], [122, 28, 78], n1);
@@ -399,6 +497,7 @@ const SKIN_MAT = {
   apple: { roughness: 0.42, clearcoat: 0.8, clearcoatRoughness: 0.15, normalScale: 0.5 },
   kiwi: { roughness: 0.95, sheen: 1, sheenColor: 0xc8a070, sheenRoughness: 0.7, normalScale: 1 },
   plum: { roughness: 0.45, sheen: 0.8, sheenColor: 0x9a90c0, sheenRoughness: 0.5, clearcoat: 0.3, normalScale: 0.6 },
+  coconut: { roughness: 0.95, sheen: 0.6, sheenColor: 0x8a6a48, sheenRoughness: 0.9, normalScale: 1.3 },
 };
 
 // Side profile of each fruit (bottom -> top), revolved with LatheGeometry
@@ -423,6 +522,7 @@ function fruitProfile(def) {
         break;
       case 'kiwi': y *= 1.22; break;
       case 'plum': r *= 1 + 0.04 * s; y *= 1.05; if (s > 0) y -= 0.12 * R * dimple; break;
+      case 'coconut': r *= 1 - 0.06 * s; y *= 1.1; break;
     }
     pts.push(new THREE.Vector2(i === 0 || i === N ? 0 : Math.max(0, r), y));
   }
@@ -525,20 +625,84 @@ function paintCap(def, pts, box) {
       for (let i = 0; i < 8; i++) { g.beginPath(); g.ellipse(0, midY, 0.3 * R * (i / 8), 0.46 * R, 0, 0, Math.PI * 2); g.stroke(); }
       break;
     }
+    case 'coconut': {
+      fill(1, '#5a3519'); fill(0.955, '#3a2210');                 // husk + hard shell
+      fill(0.92, radial([[0, '#ffffff'], [1, '#f1ebda']], box.maxY)); // white meat
+      fill(0.72, radial([[0, 'rgba(236,240,232,.9)'], [1, 'rgba(214,220,206,.95)']], box.maxY)); // coconut water
+      grains(0.9, 500, 'rgba(255,255,255,.5)', 0.02 * R);
+      g.fillStyle = 'rgba(255,255,255,.35)';
+      g.beginPath(); g.ellipse(-0.15 * R, midY + 0.2 * R, 0.18 * R, 0.07 * R, -0.5, 0, Math.PI * 2); g.fill();
+      break;
+    }
   }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
   return t;
 }
 
-function capGeometry(pts, box) {
+// Cracked variants of a skin texture (for hard fruit hit before they split)
+function crackedMaterial(def, stage) {
+  const base = def.skinMat.map.image;
+  const c = document.createElement('canvas'); c.width = base.width; c.height = base.height;
+  const g = c.getContext('2d'); g.drawImage(base, 0, 0);
+  const w = c.width, h = c.height;
+  let a = 7 + stage * 31;
+  const r = () => { a = (a * 9301 + 49297) % 233280; return a / 233280; }; // repeatable cracks
+  for (let n = 0; n < stage * 3; n++) {
+    let x = r() * w, y = h * (0.2 + r() * 0.6);
+    const pts = [[x, y]];
+    for (let i = 0; i < 9; i++) { x += (r() - 0.5) * 34; y += (r() - 0.3) * 22; pts.push([x, y]); }
+    for (const [col, lw] of [['rgba(20,10,4,.95)', 4], ['rgba(240,225,200,.8)', 1.4]]) {
+      g.strokeStyle = col; g.lineWidth = lw; g.beginPath();
+      pts.forEach(([px, py], i) => i ? g.lineTo(px, py) : g.moveTo(px, py)); g.stroke();
+    }
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping;
+  const m = def.skinMat.clone(); m.map = t;
+  return m;
+}
+
+// ---------- Fruit pieces: wedges of the lathe that can be cut again and again ----------
+// A piece covers lathe angles [start, start+len]. A half is len = PI, a quarter PI/2, ...
+// Each flat side of the wedge is half of the fruit's profile, showing the juicy flesh.
+function halfCapShape(def) { // right half of the side profile, closed along the axis
+  if (def.halfCapBase) return def.halfCapBase;
   const shape = new THREE.Shape();
-  pts.forEach((p, i) => i ? shape.lineTo(p.x, p.y) : shape.moveTo(p.x, p.y));
-  for (let i = pts.length - 2; i > 0; i--) shape.lineTo(-pts[i].x, pts[i].y);
+  shape.moveTo(0, def.pts[0].y);
+  for (const p of def.pts) shape.lineTo(p.x, p.y);
+  shape.closePath();
   const geo = new THREE.ShapeGeometry(shape, 2);
-  const pos = geo.attributes.position, uv = geo.attributes.uv;
+  const pos = geo.attributes.position, uv = geo.attributes.uv, b = def.box;
   for (let i = 0; i < pos.count; i++)
-    uv.setXY(i, (pos.getX(i) + box.maxX) / (box.maxX * 2), (pos.getY(i) - box.minY) / (box.maxY - box.minY));
-  return geo.rotateY(-Math.PI / 2); // cut face lies in the x=0 plane, facing -X
+    uv.setXY(i, (pos.getX(i) + b.maxX) / (b.maxX * 2), (pos.getY(i) - b.minY) / (b.maxY - b.minY));
+  return (def.halfCapBase = geo);
+}
+function capAtAngle(def, phi) { // swing the half profile onto the plane at lathe angle phi
+  const geo = halfCapShape(def).clone(), pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const sx = pos.getX(i);
+    pos.setXYZ(i, sx * Math.sin(phi), pos.getY(i), sx * Math.cos(phi));
+  }
+  geo.computeVertexNormals();
+  return geo;
+}
+function pieceGeos(def, start, len) {
+  const key = start.toFixed(4) + ':' + len.toFixed(4);
+  if (def.pieceCache.has(key)) return def.pieceCache.get(key);
+  const seg = Math.max(4, Math.round(48 * len / (Math.PI * 2)));
+  const skin = new THREE.LatheGeometry(def.pts, seg, start, len);
+  const uv = skin.attributes.uv; // keep the skin texture where it was on the whole fruit
+  for (let i = 0; i < uv.count; i++) uv.setX(i, (start + uv.getX(i) * len) / (Math.PI * 2));
+  const g = { skin, capA: capAtAngle(def, start), capB: capAtAngle(def, start + len) };
+  def.pieceCache.set(key, g);
+  return g;
+}
+function makePiece(def, start, len, withStem) {
+  const geos = pieceGeos(def, start, len), g = new THREE.Group();
+  g.add(new THREE.Mesh(geos.skin, def.skinMat));
+  g.add(new THREE.Mesh(geos.capA, def.capMat));
+  g.add(new THREE.Mesh(geos.capB, def.capMat));
+  if (withStem) addStem(def, g);
+  return g;
 }
 
 for (const def of FRUITS) {
@@ -550,13 +714,13 @@ for (const def of FRUITS) {
   const m = { ...SKIN_MAT[def.id] };
   const ns = m.normalScale; delete m.normalScale;
   def.skinMat = new THREE.MeshPhysicalMaterial({ map, normalMap, normalScale: new THREE.Vector2(ns, ns), ...m });
-  def.capMat = new THREE.MeshPhysicalMaterial({ map: paintCap(def, pts, box), roughness: 0.4, clearcoat: 0.9, clearcoatRoughness: 0.2 });
+  def.capMat = new THREE.MeshPhysicalMaterial({ map: paintCap(def, pts, box), roughness: 0.4, clearcoat: 0.9, clearcoatRoughness: 0.2, side: THREE.DoubleSide });
   def.wholeGeo = new THREE.LatheGeometry(pts, 48);
-  def.halfGeo = new THREE.LatheGeometry(pts, 24, 0, Math.PI); // occupies x >= 0
-  const uv = def.halfGeo.attributes.uv;
-  for (let i = 0; i < uv.count; i++) uv.setX(i, uv.getX(i) * 0.5);
-  def.capGeo = capGeometry(pts, box);
+  def.pts = pts; def.box = box; def.pieceCache = new Map();
 }
+for (const def of FRUITS) if (def.hp) def.crackMats = [null, crackedMaterial(def, 1), crackedMaterial(def, 2)];
+// Golden fruit: a rare, shiny bonus fruit (+10)
+const goldMat = new THREE.MeshPhysicalMaterial({ color: 0xffc23a, metalness: 1, roughness: 0.22, clearcoat: 1, clearcoatRoughness: 0.1 });
 
 const stemMat = new THREE.MeshStandardMaterial({ color: 0x4a3018, roughness: 0.85 });
 const leafMat = new THREE.MeshPhysicalMaterial({ color: 0x3d8b2f, roughness: 0.5, clearcoat: 0.4, side: THREE.DoubleSide });
@@ -594,13 +758,8 @@ function makeWholeFruit(def) {
   return g;
 }
 
-function makeHalf(def, withStem) {
-  const g = new THREE.Group();
-  g.add(new THREE.Mesh(def.halfGeo, def.skinMat));
-  g.add(new THREE.Mesh(def.capGeo, def.capMat));
-  if (withStem) addStem(def, g);
-  return g;
-}
+// A half occupies lathe angles 0..PI, i.e. the x >= 0 side, with its cut face in the x = 0 plane
+const makeHalf = (def, withStem) => makePiece(def, 0, Math.PI, withStem);
 
 // ---------- Bomb ----------
 function makeGlowTexture() {
@@ -626,12 +785,18 @@ const fuseCurve = new THREE.CatmullRomCurve3([
 ]);
 const fuseGeo = new THREE.TubeGeometry(fuseCurve, 12, 0.05, 6);
 
-function makeBomb() {
+// Arcade bomb variants: smoke (clouds the screen) and mirror (flips your swipe left/right)
+const BOMB_VARIANTS = {
+  smoke:  { mat: new THREE.MeshStandardMaterial({ color: 0x8c9198, roughness: 0.5, metalness: 0.3 }), spark: 0xdddddd, label: 'SMOKE!', color: 0xb8bcc2 },
+  mirror: { mat: new THREE.MeshStandardMaterial({ color: 0x6a2bb0, roughness: 0.25, metalness: 0.5, emissive: 0x2a0850 }), spark: 0xd070ff, label: 'MIRRORED!', color: 0xc070ff },
+};
+function makeBomb(variant) {
   const g = new THREE.Group();
-  g.add(new THREE.Mesh(bombGeo, bombMat));
+  g.add(new THREE.Mesh(bombGeo, variant ? BOMB_VARIANTS[variant].mat : bombMat));
   const cap = new THREE.Mesh(bombCapGeo, bombCapMat); cap.position.y = BOMB_R; g.add(cap);
   g.add(new THREE.Mesh(fuseGeo, fuseMat));
-  const spark = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, blending: THREE.AdditiveBlending, depthWrite: false }));
+  const spark = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, blending: THREE.AdditiveBlending, depthWrite: false,
+    color: variant ? BOMB_VARIANTS[variant].spark : 0xffffff }));
   spark.position.set(0.5, BOMB_R + 0.5, 0); spark.scale.setScalar(0.8);
   g.add(spark);
   g.userData.spark = spark;
@@ -679,8 +844,9 @@ function addPart(m, vel, life, s, type, extra = {}) {
   particles.push({ m, vel, life, max: life, s, type, ...extra });
 }
 // dir = slice direction in world space; juice sprays mostly along the cut, both ways
-function juiceBurst(pos, def, dir, scale) {
-  for (let i = 0; i < 34; i++) {
+function juiceBurst(pos, def, dir, scale, amt = 1) {
+  const N = (n) => Math.max(1, Math.round(n * amt));
+  for (let i = 0; i < N(34); i++) {
     const m = new THREE.Mesh(dropGeo, juiceMat(def.juice));
     m.position.copy(pos).addScaledVector(randDir(), rand(0, 0.3) * scale);
     const v = randDir().multiplyScalar(rand(2, 7))
@@ -688,27 +854,27 @@ function juiceBurst(pos, def, dir, scale) {
     addPart(m, v, rand(0.6, 1.1), rand(0.04, 0.12) * scale, 'drop');
   }
   // a few big drops fly at the camera and splat on the "screen"
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < Math.round(4 * amt); i++) {
     const m = new THREE.Mesh(dropGeo, juiceMat(def.juice));
     m.position.copy(pos);
     addPart(m, new THREE.Vector3(rand(-3, 3), rand(-1, 4), rand(16, 26)), 1.5, rand(0.08, 0.14) * scale, 'drop', { hit: def });
   }
   // chunks of flesh
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < N(7); i++) {
     const m = new THREE.Mesh(pulpGeo, pulpMat(def.flesh));
     m.position.copy(pos);
     addPart(m, randDir().multiplyScalar(rand(2, 6)).add(new THREE.Vector3(0, 3, 0)), rand(0.9, 1.4), rand(0.05, 0.12) * scale, 'chunk',
       { spin: new THREE.Vector3(rand(-12, 12), rand(-12, 12), rand(-12, 12)) });
   }
   // seeds
-  if (SEED_COLOR[def.id]) for (let i = 0; i < (def.id === 'apple' ? 2 : 7); i++) {
+  if (SEED_COLOR[def.id]) for (let i = 0; i < Math.round((def.id === 'apple' ? 2 : 7) * amt); i++) {
     const m = new THREE.Mesh(seedGeo, pulpMat(SEED_COLOR[def.id]));
     m.position.copy(pos);
     addPart(m, randDir().multiplyScalar(rand(3, 7)).add(new THREE.Vector3(0, 3, 0)), rand(1, 1.4), rand(0.04, 0.07) * scale, 'chunk',
       { spin: new THREE.Vector3(rand(-15, 15), rand(-15, 15), rand(-15, 15)) });
   }
   // fine juice mist that puffs out and fades
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < N(7); i++) {
     const mist = new THREE.Sprite(new THREE.SpriteMaterial({ map: puffTex, color: def.juice, transparent: true, depthWrite: false, opacity: 0 }));
     mist.position.copy(pos).addScaledVector(dir, rand(-0.8, 0.8) * scale);
     const v = randDir().multiplyScalar(rand(0.5, 2)).addScaledVector(dir, rand(-2, 2));
@@ -963,6 +1129,15 @@ const SND = {
   menuAppear: ['menu-hd-appear.wav'],
   menuBomb: ['menu-bomb.wav'],
   whoosh: ['ui-screen-whoosh.wav'],
+  shred: ['Bonus-Firework-Explode.wav'],
+  golden: ['powerup-starfruit.wav'],
+  hardHit: ['Impact-Coconut-More-Attack.wav'],
+  'fruit-coconut': ['Impact-Coconut.wav'],
+  smokeBomb: ['powerup-deflect-explode.wav'],
+  mirrorBomb: ['powerup-deflect.wav'],
+  tap: ['gutsus-shop-button-tap.wav'],
+  mission: ['achievement.wav'],
+  achievement: ['progress-complete.wav'],
   pause: ['Pause.wav'],
   unpause: ['Unpause.wav'],
   freeze: ['Bonus-Banana-Freeze.wav'],
@@ -1153,6 +1328,26 @@ function persist() {
 }
 // Unlock All: every knife can be equipped, but scoring (score, coins, best) is disabled
 const scoring = () => !save.unlockAll;
+// Points pass through one place so every multiplier applies: Double Score power-up × combo streak
+const STREAK_TIME = 3;
+const mult = () => (game.x2 > 0 ? 2 : 1) * (1 + (game.streak || 0));
+function addPoints(n) {
+  if (!scoring() || game.mode !== 'play') return 0;
+  const p = n * mult();
+  game.score += p;
+  return p;
+}
+// Haptic feedback (Android); silently ignored where unsupported
+function buzz(pattern) {
+  if (save.vibrate === false || !navigator.vibrate) return;
+  try { navigator.vibrate(pattern); } catch (e) {}
+}
+// Progress events (stats / missions / achievements hook in here)
+function track(type, value = 1, extra) { if (typeof onTrack === 'function') onTrack(type, value, extra); }
+function toggleVibrate() {
+  save.vibrate = save.vibrate === false; persist();
+  play('toggle'); buzz(40);
+}
 const hasKnife = (id) => save.unlockAll || save.owned.includes(id);
 const knife = () => KNIVES.find(k => k.id === save.equipped && hasKnife(k.id)) || KNIVES[0];
 function toggleUnlockAll() {
@@ -1178,6 +1373,14 @@ function updateHud() {
   timerEl.classList.toggle('hidden', !(inGame && MODES[game.type].time));
   $('pauseBtn').classList.toggle('hidden', game.mode !== 'play');
 }
+const streakEl = $('streak'), streakBarEl = document.querySelector('#streakBar i');
+function updateStreakHud() {
+  const on = game.mode === 'play' && game.streak > 0;
+  streakEl.classList.toggle('hidden', !on);
+  if (!on) return;
+  $('streakX').textContent = '×' + (1 + game.streak);
+  streakBarEl.style.width = Math.max(0, game.streakT / STREAK_TIME) * 100 + '%';
+}
 function updateTimer() {
   const s = Math.max(0, Math.ceil(game.timeLeft));
   timerEl.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -1185,10 +1388,14 @@ function updateTimer() {
 }
 let lastPowersHtml = '';
 function updatePowers() {
-  const html = Object.keys(POWERS).filter(k => game[k] > 0)
-    .map(k => `<span class="${k}">${POWERS[k].icon} ${Math.ceil(game[k])}s</span>`).join(' &nbsp; ');
+  const items = Object.keys(POWERS).filter(k => game[k] > 0)
+    .map(k => `<span class="${k}">${POWERS[k].icon} ${Math.ceil(game[k])}s</span>`);
+  if (game.mirror > 0) items.push(`<span class="mirror">⇄ ${Math.ceil(game.mirror)}s</span>`);
+  const html = items.join(' &nbsp; ');
   if (html !== lastPowersHtml) { powersEl.innerHTML = html; lastPowersHtml = html; }
   $('freezeTint').classList.toggle('on', game.freeze > 0);
+  $('mirrorTint').classList.toggle('on', game.mirror > 0);
+  $('smoke').classList.toggle('on', game.smoke > 0);
 }
 
 // ---------- Shop UI ----------
@@ -1199,12 +1406,50 @@ function swatchStyle(k) {
     ? 'background:linear-gradient(90deg,#f33,#fa0,#ff3,#3f6,#3af,#a5f);box-shadow:0 0 10px rgba(255,255,255,.7)'
     : `background:linear-gradient(90deg,transparent,${k.core});box-shadow:0 0 12px ${k.glow}`;
 }
+let shopTab = 'knives';
+document.querySelectorAll('#shopTabs .tab').forEach((b) => b.onclick = () => { shopTab = b.dataset.tab; play('tap'); renderShop(); });
+function buyButton(price, owned, equipped, onEquip, onBuy) {
+  const b = document.createElement('button');
+  b.className = 'btn' + (owned ? ' ghost' : '');
+  if (equipped) { b.textContent = 'Equipped'; b.disabled = true; }
+  else if (owned) { b.textContent = 'Equip'; b.onclick = onEquip; }
+  else {
+    b.textContent = `Buy 🪙${price}`;
+    if (save.coins < price) b.classList.add('cant');
+    b.onclick = () => {
+      if (save.coins < price) { play('locked'); return; }
+      save.coins -= price; onBuy(); persist(); renderShop(); updateHud(); play('buy');
+    };
+  }
+  return b;
+}
+function renderBoards(list) {
+  $('shopHint').textContent = 'Change the board you slice on.';
+  for (const bd of BOARDS) {
+    const owned = hasBoard(bd.id), equipped = (hasBoard(save.board) ? save.board : 'oak') === bd.id;
+    const row = document.createElement('div');
+    row.className = 'knife' + (equipped ? ' equipped' : '');
+    row.innerHTML = `<div class="boardThumb"></div>
+      <div class="info"><div class="name">${bd.name}</div><div class="desc">${bd.desc}</div></div>`;
+    // paint thumbnails lazily so opening the tab stays snappy
+    const th = row.firstElementChild;
+    setTimeout(() => { th.style.backgroundImage = `url(${boardImage(bd.id)})`; }, 30);
+    const equip = () => { save.board = bd.id; persist(); applyBoard(); renderShop(); play('equip'); };
+    row.appendChild(buyButton(bd.price, owned, equipped, equip, () => {
+      save.boards = [...(save.boards || []), bd.id]; save.board = bd.id; applyBoard();
+    }));
+    list.appendChild(row);
+  }
+}
 function renderShop() {
   $('shopCoins').textContent = save.coins;
+  document.querySelectorAll('#shopTabs .tab').forEach((b) => b.classList.toggle('on', b.dataset.tab === shopTab));
   const list = $('knifeList');
   list.innerHTML = save.unlockAll
-    ? '<p style="margin:10px 0 0;color:#ffd23f;font-weight:700">🔓 Unlock All is on: every knife is free to equip, but scores are disabled. Turn it off in Options.</p>'
+    ? '<p style="margin:10px 0 0;color:#ffd23f;font-weight:700">🔓 Unlock All is on: everything is free to equip, but scores are disabled. Turn it off in Options.</p>'
     : '';
+  if (shopTab === 'boards') return renderBoards(list);
+  $('shopHint').textContent = 'Every point you score becomes a coin. Each knife slashes in its own colors.';
   for (const k of KNIVES) {
     const owned = hasKnife(k.id), equipped = knife().id === k.id;
     const row = document.createElement('div');
@@ -1236,6 +1481,150 @@ function setShop(open) {
   shopEl.classList.toggle('hidden', !open);
   if (open) renderShop();
 }
+// ---------- Progress: stats, daily missions, achievements ----------
+const STATS0 = { fruits: 0, perFruit: {}, pieces: 0, shreds: 0, golden: 0, hard: 0, bombs: 0, bestCombo: 0, games: 0, playTime: 0 };
+save.stats = Object.assign({}, STATS0, save.stats || {});
+save.ach = save.ach || {};
+const FRUIT_NAME = { watermelon: 'watermelons', orange: 'oranges', apple: 'apples', lemon: 'lemons', kiwi: 'kiwis', plum: 'plums' };
+
+function toast(title, sub) {
+  const d = document.createElement('div');
+  d.className = 'toast'; d.innerHTML = `${title}${sub ? `<small>${sub}</small>` : ''}`;
+  $('toasts').appendChild(d);
+  setTimeout(() => d.remove(), 3300);
+}
+function reward(coins) { if (scoring()) { save.coins += coins; updateHud(); } }
+
+// Daily missions: 3 per day, picked with a date-based seed so they stay the same all day
+const MISSION_POOL = [
+  { kind: 'slice',  targets: [60, 100, 150], reward: 60,  text: (n) => `Slice ${n} fruit` },
+  { kind: 'sliceF', targets: [15, 25],       reward: 70,  text: (n, p) => `Slice ${n} ${FRUIT_NAME[p]}` },
+  { kind: 'combo',  targets: [4, 5, 6],      reward: 80,  text: (n) => `Make a ${n}-fruit combo`, best: true },
+  { kind: 'shred',  targets: [2, 4],         reward: 90,  text: (n) => `Shred ${n} fruit into 8 pieces` },
+  { kind: 'golden', targets: [1, 2],         reward: 100, text: (n) => `Slice ${n} golden fruit` },
+  { kind: 'hard',   targets: [2, 3],         reward: 80,  text: (n) => `Crack open ${n} coconuts` },
+  { kind: 'score',  targets: [40, 70],       reward: 100, text: (n, p) => `Score ${n}+ in ${MODES[p].name}`, best: true },
+  { kind: 'games',  targets: [3, 5],         reward: 50,  text: (n) => `Play ${n} games` },
+];
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
+function ensureMissions() {
+  if (save.missions && save.missions.date === today()) return;
+  let seed = [...today()].reduce((s, ch) => (s * 31 + ch.charCodeAt(0)) >>> 0, 7);
+  const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+  const pool = [...MISSION_POOL], list = [];
+  while (list.length < 3) {
+    const t = pool.splice(Math.floor(rnd() * pool.length), 1)[0];
+    const target = t.targets[Math.floor(rnd() * t.targets.length)];
+    const param = t.kind === 'sliceF' ? Object.keys(FRUIT_NAME)[Math.floor(rnd() * 6)]
+      : t.kind === 'score' ? ['classic', 'zen', 'arcade'][Math.floor(rnd() * 3)] : null;
+    list.push({ kind: t.kind, target, param, reward: t.reward, best: !!t.best, progress: 0, done: false });
+  }
+  save.missions = { date: today(), list };
+  persist();
+}
+const missionText = (m) => MISSION_POOL.find(t => t.kind === m.kind).text(m.target, m.param);
+
+const ACHIEVEMENTS = [
+  { id: 'first',     icon: '🍉', name: 'First Cut',       desc: 'Slice your first fruit',      reward: 20,  test: (s) => s.fruits >= 1 },
+  { id: 'f500',      icon: '🥝', name: 'Fruit Fan',       desc: 'Slice 500 fruit',             reward: 100, test: (s) => s.fruits >= 500 },
+  { id: 'f2000',     icon: '🧺', name: 'Orchard Clearer', desc: 'Slice 2,000 fruit',           reward: 300, test: (s) => s.fruits >= 2000 },
+  { id: 'combo6',    icon: '✨', name: 'Combo Artist',    desc: 'Make a 6-fruit combo',        reward: 120, test: (s) => s.bestCombo >= 6 },
+  { id: 'combo8',    icon: '🌟', name: 'Combo Master',    desc: 'Make an 8-fruit combo',       reward: 250, test: (s) => s.bestCombo >= 8 },
+  { id: 'shred1',    icon: '🥗', name: 'Fruit Salad',     desc: 'Shred a fruit into 8 pieces', reward: 60,  test: (s) => s.shreds >= 1 },
+  { id: 'shred25',   icon: '🌀', name: 'Blender',         desc: 'Shred 25 fruit',              reward: 200, test: (s) => s.shreds >= 25 },
+  { id: 'gold10',    icon: '🥇', name: 'Gold Rush',       desc: 'Slice 10 golden fruit',       reward: 200, test: (s) => s.golden >= 10 },
+  { id: 'hard10',    icon: '🥥', name: 'Nutcracker',      desc: 'Crack open 10 coconuts',      reward: 150, test: (s) => s.hard >= 10 },
+  { id: 'classic100',icon: '🍎', name: 'Classic Hero',    desc: 'Score 100 in Classic',        reward: 200, test: () => (save.best.classic || 0) >= 100 },
+  { id: 'zen150',    icon: '🍊', name: 'Inner Peace',     desc: 'Score 150 in Zen',            reward: 200, test: () => (save.best.zen || 0) >= 150 },
+  { id: 'arcade200', icon: '🕹️', name: 'Arcade Legend',  desc: 'Score 200 in Arcade',         reward: 250, test: () => (save.best.arcade || 0) >= 200 },
+  { id: 'bombs20',   icon: '💣', name: 'Oops!',           desc: 'Hit 20 bombs',                reward: 30,  test: (s) => s.bombs >= 20 },
+];
+
+// Single entry point for every gameplay event (see track())
+function onTrack(type, value, extra) {
+  if (!scoring()) return;                                   // Unlock All doesn't earn progress
+  if (game.mode !== 'play' && type !== 'score' && type !== 'games') return; // menu slicing doesn't count
+  const s = save.stats;
+  if (type === 'slice') { s.fruits += value; s.perFruit[extra] = (s.perFruit[extra] || 0) + value; }
+  else if (type === 'combo') s.bestCombo = Math.max(s.bestCombo, value);
+  else if (type === 'games') s.games += 1;
+  else if (type === 'piece') s.pieces += 1;
+  else {
+    const key = { shred: 'shreds', bomb: 'bombs' }[type] || type;
+    if (s[key] !== undefined && type !== 'score') s[key] += value;
+  }
+
+  ensureMissions();
+  for (const m of save.missions.list) {
+    if (m.done) continue;
+    const match = (m.kind === type) || (m.kind === 'sliceF' && type === 'slice' && extra === m.param);
+    if (!match || (m.kind === 'score' && extra !== m.param)) continue;
+    m.progress = m.best ? Math.max(m.progress, value) : m.progress + value;
+    if (m.progress >= m.target) {
+      m.done = true; m.progress = m.target; reward(m.reward);
+      toast(`📜 Mission complete! +${m.reward} 🪙`, missionText(m));
+      play('mission'); buzz([20, 40, 20]);
+    }
+  }
+  for (const a of ACHIEVEMENTS) {
+    if (save.ach[a.id] || !a.test(s)) continue;
+    save.ach[a.id] = Date.now(); reward(a.reward);
+    toast(`${a.icon} Achievement: ${a.name}  +${a.reward} 🪙`, a.desc);
+    play('achievement');
+  }
+  persist();
+}
+
+let progTab = 'missions';
+const progEl = $('progress');
+document.querySelectorAll('#progTabs .tab').forEach((b) => b.onclick = () => { progTab = b.dataset.tab; play('tap'); renderProgress(); });
+function row(badge, name, desc, right, pct, cls = '') {
+  return `<div class="knife ${cls}"><div class="badge">${badge}</div>
+    <div class="info"><div class="name">${name}</div><div class="desc">${desc}</div>
+    ${pct === null ? '' : `<div class="bar"><i style="width:${Math.round(pct * 100)}%"></i></div>`}</div>
+    <div class="reward">${right}</div></div>`;
+}
+function renderProgress() {
+  ensureMissions();
+  $('progCoins').textContent = save.coins;
+  document.querySelectorAll('#progTabs .tab').forEach((b) => b.classList.toggle('on', b.dataset.tab === progTab));
+  const s = save.stats, list = $('progList');
+  let html = save.unlockAll ? '<p style="margin:10px 0 0;color:#ffd23f;font-weight:700">🔓 Unlock All is on: progress is paused.</p>' : '';
+  if (progTab === 'missions') {
+    html += '<p style="margin:10px 0 0;opacity:.75;font-size:14px">New missions every day. Rewards are paid automatically.</p>';
+    for (const m of save.missions.list)
+      html += row(m.done ? '✅' : '📜', missionText(m), `${m.progress} / ${m.target}`, `🪙 ${m.reward}`, m.progress / m.target, m.done ? 'equipped' : '');
+  } else if (progTab === 'achievements') {
+    const got = ACHIEVEMENTS.filter(a => save.ach[a.id]).length;
+    html += `<p style="margin:10px 0 0;opacity:.75;font-size:14px">${got} / ${ACHIEVEMENTS.length} unlocked</p>`;
+    for (const a of ACHIEVEMENTS)
+      html += row(save.ach[a.id] ? a.icon : '🔒', a.name, a.desc, save.ach[a.id] ? '✔' : `🪙 ${a.reward}`, null, save.ach[a.id] ? 'equipped' : 'locked');
+  } else {
+    const fav = Object.entries(s.perFruit).sort((a, b) => b[1] - a[1])[0];
+    const mins = Math.floor(s.playTime / 60);
+    const rows = [
+      ['Fruit sliced', s.fruits], ['Extra pieces cut', s.pieces], ['Fruit shredded', s.shreds],
+      ['Golden fruit', s.golden], ['Coconuts cracked', s.hard], ['Bombs hit', s.bombs],
+      ['Biggest combo', s.bestCombo], ['Games played', s.games],
+      ['Time played', mins >= 60 ? `${Math.floor(mins / 60)}h ${mins % 60}m` : `${mins}m`],
+      ['Favourite fruit', fav ? `${fav[0]} (${fav[1]})` : '—'],
+      ['Best Classic / Zen / Arcade', `${save.best.classic || 0} / ${save.best.zen || 0} / ${save.best.arcade || 0}`],
+    ];
+    html += '<div style="margin-top:10px">' + rows.map(([k, v]) => `<div class="statRow"><span>${k}</span><b>${v}</b></div>`).join('') + '</div>';
+  }
+  list.innerHTML = html;
+}
+let progressOpen = false;
+function setProgress(open) {
+  if (open !== progressOpen) play(open ? 'shopOpen' : 'shopClose');
+  progressOpen = open;
+  progEl.classList.toggle('hidden', !open);
+  if (open) renderProgress();
+}
+$('closeProgress').onclick = () => setProgress(false);
+progEl.addEventListener('click', (ev) => { if (ev.target === progEl) setProgress(false); });
+progEl.addEventListener('pointerdown', (ev) => { ev.stopPropagation(); audio(); });
+
 const soundBtn = $('musicBtn');
 const syncSoundBtn = () => { soundBtn.textContent = save.sound ? '🔊' : '🔇'; };
 syncSoundBtn();
@@ -1266,7 +1655,7 @@ function setPaused(p) {
 function quitToMenu() {
   game.paused = false; $('pauseMenu').classList.add('hidden');
   game.mode = 'menu'; game.queue = [];
-  game.freeze = game.frenzy = game.x2 = 0; updatePowers();
+  game.freeze = game.frenzy = game.x2 = game.smoke = game.mirror = 0; updatePowers();
   for (const e of [...entities]) if (!e.item) removeEntity(e); // clear fruit & bombs still in the air
   updateHud(); goScreen('main');
 }
@@ -1276,6 +1665,7 @@ $('restartBtn').onclick = () => { const t = game.type; quitToMenu(); goScreen(nu
 $('quitBtn').onclick = quitToMenu;
 addEventListener('keydown', (ev) => {
   if (ev.key === 'Escape' && shopOpen) { setShop(false); return; }
+  if (ev.key === 'Escape' && progressOpen) { setProgress(false); return; }
   if (ev.key === 'p' || ev.key === 'P' || ev.key === 'Escape') {
     if (game.mode === 'play') setPaused(!game.paused);
   }
@@ -1297,29 +1687,34 @@ function popup(text, x, y, cls) {
 function spawnEntity(kind, opts = {}) {
   const isBomb = kind === 'bomb';
   const def = isBomb ? null : kind;
-  const mesh = isBomb ? makeBomb() : makeWholeFruit(def);
+  const mesh = isBomb ? makeBomb(opts.variant) : makeWholeFruit(def);
   const e = {
     mesh, def, bomb: isBomb, item: opts.item || null, noMiss: false, power: opts.power || null,
+    variant: isBomb ? opts.variant || null : null, golden: !isBomb && !!opts.golden,
+    hp: isBomb ? 1 : def.hp || 1,
     radius: isBomb ? BOMB_R : def.extent,
     vel: new THREE.Vector3(), spin: new THREE.Vector3(rand(-3, 3), rand(-3, 3), rand(-3, 3)),
     scale: opts.scale || 1,
   };
   mesh.scale.setScalar(e.scale);
   e.radius *= e.scale;
-  if (e.power) { // glowing aura marks a power-up fruit
-    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: POWERS[e.power].color, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
-    halo.scale.setScalar(def.extent * 3.4);
+  const glowColor = e.power ? POWERS[e.power].color : e.golden ? 0xffd040 : e.variant ? BOMB_VARIANTS[e.variant].color : null;
+  if (glowColor !== null) { // glowing aura marks power-ups, golden fruit and special bombs
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: glowColor, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+    halo.scale.setScalar((def ? def.extent : BOMB_R) * 3.4);
     mesh.add(halo); e.halo = halo;
   }
+  if (e.golden) mesh.children[0].material = goldMat;
   if (e.item) {
     mesh.position.set(opts.x || 0, opts.y || 0, 0);
   } else {
+    // launch from the bottom; patterns can override where from, where to, and how high
     const y0 = -viewH / 2 - 1.5;
-    const x0 = rand(-viewW * 0.38, viewW * 0.38);
-    const peak = rand(0, viewH / 2 - 2);
+    const x0 = opts.x0 ?? rand(-viewW * 0.38, viewW * 0.38);
+    const peak = opts.peak ?? rand(0, viewH / 2 - 2);
     const vy = Math.sqrt(2 * G * (peak - y0));
     const tPeak = vy / G;
-    const xTarget = rand(-viewW * 0.3, viewW * 0.3);
+    const xTarget = opts.xTarget ?? rand(-viewW * 0.3, viewW * 0.3);
     mesh.position.set(x0, y0, rand(-1.5, 1.5));
     e.vel.set((xTarget - x0) / (tPeak * 1.6), vy, 0);
     play(isBomb ? 'throwBomb' : 'throwFruit', { vol: 0.45 });
@@ -1405,6 +1800,7 @@ function screenItems(name) {
       { id: 'shop', label: 'KNIFE SHOP', fruit: 'kiwi', color: 0x8a4fd0, x: -0.33, y: -0.2, size: 0.86, stay: true, action: () => setShop(true) },
       { id: 'play', label: 'PLAY', fruit: 'watermelon', color: 0xe0582a, x: 0, y: -0.1, size: 1.12, action: () => goScreen('modes') },
       { id: 'options', label: 'OPTIONS', fruit: 'lemon', color: 0x1f9e8f, x: 0.33, y: -0.18, size: 0.86, action: () => goScreen('options') },
+      { id: 'progress', label: 'MISSIONS', fruit: 'orange', color: 0xd9822b, x: 0.38, y: 0.13, size: 0.6, stay: true, action: () => setProgress(true) },
     ];
     case 'modes': return [
       ...['zen', 'classic', 'arcade'].map((k, i) => ({
@@ -1418,6 +1814,7 @@ function screenItems(name) {
       { id: 'sound', label: save.sound ? 'SOUND: ON' : 'SOUND: OFF', fruit: 'plum', color: save.sound ? 0x3fae4a : 0x777777, x: -0.3, y: -0.02, size: 0.85, stay: true, action: toggleSound },
       { id: 'fullscreen', label: 'FULLSCREEN', fruit: 'orange', color: 0xd99a1e, x: 0, y: 0.04, size: 0.85, stay: true, action: toggleFullscreen },
       { id: 'unlock', label: save.unlockAll ? 'UNLOCK ALL: ON' : 'UNLOCK ALL: OFF', fruit: 'apple', color: save.unlockAll ? 0xe23b8c : 0x777777, x: 0.3, y: -0.02, size: 0.85, stay: true, action: toggleUnlockAll },
+      { id: 'vibrate', label: save.vibrate === false ? 'VIBRATION: OFF' : 'VIBRATION: ON', fruit: 'kiwi', color: save.vibrate === false ? 0x777777 : 0x7a5cd6, x: 0, y: -0.33, size: 0.58, stay: true, action: toggleVibrate },
       ...(installPrompt ? [{ id: 'install', label: 'INSTALL APP', fruit: 'lemon', color: 0x2a8fd6, x: -0.4, y: -0.32, size: 0.58, action: installApp }] : []),
       BACK(() => goScreen('main')),
     ];
@@ -1536,40 +1933,98 @@ function updateMenuItems(dt, t) {
   }
 }
 
-// ---------- Procedural wooden background ----------
-function paintWood() {
-  const w = 768, h = 512, planks = 6, pw = w / planks;
+// ---------- Procedural board backgrounds (buyable in the shop) ----------
+const BOARDS = [
+  { id: 'oak',    name: 'Oak Planks',    price: 0,   desc: 'Warm honey-brown cutting board.' },
+  { id: 'walnut', name: 'Dark Walnut',   price: 150, desc: 'Deep chocolate planks.' },
+  { id: 'bamboo', name: 'Bamboo Mat',    price: 300, desc: 'Green-gold stalks with knotted nodes.' },
+  { id: 'slate',  name: 'Slate Stone',   price: 500, desc: 'Cool grey stone with veins.' },
+  { id: 'steel',  name: 'Brushed Steel', price: 800, desc: 'Riveted metal panels.' },
+];
+function paintBoard(id) {
+  const w = 768, h = 512;
   const c = document.createElement('canvas'); c.width = w; c.height = h;
   const g = c.getContext('2d'), img = g.createImageData(w, h);
-  const tones = Array.from({ length: planks }, (_, i) => 0.82 + 0.3 * NT[i * 97]);
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-    const p = Math.floor(x / pw), lx = (x % pw) / pw, u = x / w, v = y / h;
-    const warp = fbm(u, v + p * 3.1, 4, 2, 3, 20 + p);
-    const grain = Math.sin((lx * 9 + warp * 5 + p * 1.7) * Math.PI * 2) * 0.5 + 0.5;
-    const fine = vnoise(x * 0.7, y * 0.04 + p * 40, 256);
-    const knot = Math.max(0, 1 - Math.hypot((lx - NT[p * 31]) * pw, (v - NT[p * 53]) * h) / 26);
-    let s = (grain * 0.35 + fine * 0.3 + warp * 0.35) * tones[p];
-    let col = mixC([62, 34, 16], [150, 96, 54], Math.min(1, s));
-    col = mixC(col, [48, 26, 12], knot * 0.8);
-    if (lx < 0.012 || lx > 0.988) col = col.map(q => q * 0.3); // plank gaps
-    const i = (y * w + x) * 4;
-    img.data[i] = col[0]; img.data[i + 1] = col[1]; img.data[i + 2] = col[2]; img.data[i + 3] = 255;
-  }
-  g.putImageData(img, 0, 0);
-  // knife scratches
-  for (let i = 0; i < 26; i++) {
-    const x = rand(0, w), y = rand(0, h), a = rand(0, Math.PI), len = rand(40, 170);
-    g.lineWidth = rand(1, 2.2);
-    g.strokeStyle = 'rgba(30,14,4,.45)';
-    g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * len, y + Math.sin(a) * len); g.stroke();
-    g.strokeStyle = 'rgba(255,220,170,.14)';
-    g.beginPath(); g.moveTo(x + 1.5, y + 1.5); g.lineTo(x + Math.cos(a) * len + 1.5, y + Math.sin(a) * len + 1.5); g.stroke();
+  const put = (x, y, col) => { const i = (y * w + x) * 4; img.data[i] = col[0]; img.data[i + 1] = col[1]; img.data[i + 2] = col[2]; img.data[i + 3] = 255; };
+  const scratches = (n, dark, light) => {
+    for (let i = 0; i < n; i++) {
+      const x = rand(0, w), y = rand(0, h), a = rand(0, Math.PI), len = rand(40, 170);
+      g.lineWidth = rand(1, 2.2);
+      g.strokeStyle = dark; g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * len, y + Math.sin(a) * len); g.stroke();
+      g.strokeStyle = light; g.beginPath(); g.moveTo(x + 1.5, y + 1.5); g.lineTo(x + Math.cos(a) * len + 1.5, y + Math.sin(a) * len + 1.5); g.stroke();
+    }
+  };
+
+  if (id === 'oak' || id === 'walnut') {
+    const planks = 6, pw = w / planks;
+    const [lo, hi] = id === 'oak' ? [[62, 34, 16], [150, 96, 54]] : [[30, 17, 9], [92, 58, 34]];
+    const tones = Array.from({ length: planks }, (_, i) => 0.82 + 0.3 * NT[i * 97]);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const p = Math.floor(x / pw), lx = (x % pw) / pw, u = x / w, v = y / h;
+      const warp = fbm(u, v + p * 3.1, 4, 2, 3, 20 + p);
+      const grain = Math.sin((lx * 9 + warp * 5 + p * 1.7) * Math.PI * 2) * 0.5 + 0.5;
+      const fine = vnoise(x * 0.7, y * 0.04 + p * 40, 256);
+      const knot = Math.max(0, 1 - Math.hypot((lx - NT[p * 31]) * pw, (v - NT[p * 53]) * h) / 26);
+      let col = mixC(lo, hi, Math.min(1, (grain * 0.35 + fine * 0.3 + warp * 0.35) * tones[p]));
+      col = mixC(col, lo.map(q => q * 0.75), knot * 0.8);
+      if (lx < 0.012 || lx > 0.988) col = col.map(q => q * 0.3); // plank gaps
+      put(x, y, col);
+    }
+    g.putImageData(img, 0, 0);
+    scratches(26, 'rgba(20,10,4,.45)', 'rgba(255,220,170,.14)');
+  } else if (id === 'bamboo') {
+    const rows = 8, rh = h / rows;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const r = Math.floor(y / rh), ly = (y % rh) / rh;
+      const nodeX = ((x + NT[r * 13] * 400) % 190) / 190;           // knotted node every ~190px
+      const node = Math.max(ss(0.04, 0, nodeX), ss(0.96, 1, nodeX));
+      const shade = Math.sin(ly * Math.PI);                          // round stalk shading
+      const fiber = vnoise(x * 0.03, y * 0.9 + r * 50, 256);
+      let col = mixC([120, 110, 40], [214, 196, 110], shade * 0.8 + fiber * 0.2);
+      col = mixC(col, [96, 82, 32], node * 0.8);
+      if (ly < 0.05 || ly > 0.95) col = col.map(q => q * 0.35);     // gaps between stalks
+      put(x, y, col);
+    }
+    g.putImageData(img, 0, 0);
+  } else if (id === 'slate') {
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const u = x / w, v = y / h;
+      const n = fbm(u, v, 6, 4, 4, 40), vein = Math.abs(fbm(u, v, 3, 2, 3, 41) - 0.5);
+      let col = mixC([46, 52, 58], [96, 104, 112], n);
+      col = mixC(col, [140, 148, 156], ss(0.03, 0, vein) * 0.6);
+      if (vnoise(x * 0.9, y * 0.9, 256) > 0.97) col = col.map(q => q * 1.25); // mineral sparkle
+      put(x, y, col);
+    }
+    g.putImageData(img, 0, 0);
+    scratches(18, 'rgba(10,12,14,.45)', 'rgba(220,230,240,.12)');
+  } else if (id === 'steel') {
+    const pw = 256, ph = 256;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const brush = vnoise(x * 0.01, y * 0.8, 256) * 0.6 + vnoise(x * 0.004, y * 0.15 + 77, 256) * 0.4; // horizontal streaks
+      const px = (x % pw) / pw, py = (y % ph) / ph;
+      let col = mixC([92, 98, 106], [168, 176, 186], brush * 0.8 + (1 - py) * 0.2);
+      if (px < 0.008 || py < 0.008) col = col.map(q => q * 0.4);   // panel seams
+      put(x, y, col);
+    }
+    g.putImageData(img, 0, 0);
+    for (let x = 0; x <= w; x += pw) for (let y = 0; y <= h; y += ph) // rivets
+      for (const [dx, dy] of [[14, 14], [pw - 14, 14], [14, ph - 14], [pw - 14, ph - 14]]) {
+        const rg = g.createRadialGradient(x + dx - 2, y + dy - 2, 0, x + dx, y + dy, 7);
+        rg.addColorStop(0, '#e8edf2'); rg.addColorStop(1, '#4a5058');
+        g.fillStyle = rg; g.beginPath(); g.arc(x + dx, y + dy, 6, 0, Math.PI * 2); g.fill();
+      }
+    scratches(30, 'rgba(30,34,40,.35)', 'rgba(255,255,255,.18)');
   }
   return c.toDataURL('image/jpeg', 0.9);
 }
-try {
-  $('bg').style.background = `radial-gradient(ellipse at center, rgba(0,0,0,0) 35%, rgba(0,0,0,.6) 100%), url(${paintWood()}) center / cover`;
-} catch (e) {}
+const boardCache = new Map();
+const boardImage = (id) => { if (!boardCache.has(id)) boardCache.set(id, paintBoard(id)); return boardCache.get(id); };
+const hasBoard = (id) => save.unlockAll || id === 'oak' || (save.boards || []).includes(id);
+function applyBoard() {
+  const id = hasBoard(save.board) ? save.board : 'oak';
+  try { $('bg').style.background = `radial-gradient(ellipse at center, rgba(0,0,0,0) 35%, rgba(0,0,0,.6) 100%), url(${boardImage(id)}) center / cover`; } catch (e) {}
+}
+applyBoard();
 
 function sliceFruit(e, dx, dy) {
   removeEntity(e);
@@ -1578,6 +2033,7 @@ function sliceFruit(e, dx, dy) {
   const n = new THREE.Vector3(-d.y, d.x, 0);
   // Keep the fruit's long axis as it was, and cut along a plane containing that axis
   const fruitAxis = new THREE.Vector3(0, 1, 0).applyQuaternion(e.mesh.quaternion);
+  const origin = { eighthCuts: 0, t: performance.now(), shredded: false };
   for (const s of [1, -1]) {
     const h = makeHalf(def, s === 1);
     h.position.copy(pos).addScaledVector(n, s * 0.1 * e.scale);
@@ -1596,6 +2052,8 @@ function sliceFruit(e, dx, dy) {
       axis: d.clone().add(new THREE.Vector3(0, 0, rand(-0.3, 0.3))).normalize(),
       spinSpeed: s * rand(2, 5),
       juice: def.juice, scale: e.scale, drips: 14, dripT: rand(0, 0.05), // keeps leaking juice as it falls
+      def, phiStart: 0, phiLen: Math.PI, age: 0, // can be sliced again into smaller pieces
+      origin, // shared by every piece of this fruit, to detect a full "shred"
     });
   }
   juiceBurst(pos, def, d, e.scale);
@@ -1604,9 +2062,19 @@ function sliceFruit(e, dx, dy) {
   addSplat(sp.x, sp.y, def.juice, screenRadius(pos, e.radius) * 0.9, dx, dy, def);
   knifeImpact(sp.x, sp.y, dx, dy, screenRadius(pos, e.radius));
   sfx.slice(def);
+  buzz(12);
 
   if (game.mode !== 'play') return;
-  if (scoring()) game.score += game.x2 > 0 ? 2 : 1;
+  addPoints(1);
+  track('slice', 1, def.id);
+  if (e.golden) {
+    burst(pos, [0xffd040, 0xfff2a0, 0xffffff], 30, 14, 0.12);
+    const bonus = addPoints(10);
+    popup(bonus ? `GOLDEN! +${bonus}` : 'GOLDEN!', sp.x, sp.y - 40, 'combo');
+    play('golden'); buzz([15, 25, 15]);
+    track('golden');
+  }
+  if (def.hp) track('hard');
   if (e.power) activatePower(e.power, sp);
   const c = game.combo;
   c.count++; c.last = game.elapsed; c.x = sp.x; c.y = sp.y;
@@ -1620,11 +2088,37 @@ function activatePower(p, sp) {
   play(p);
 }
 
+// Smoke / mirror bombs: a soft "poof" instead of a blast, plus a temporary handicap
+function variantBomb(e) {
+  removeEntity(e);
+  const pos = e.mesh.position.clone(), V = BOMB_VARIANTS[e.variant];
+  for (let i = 0; i < 16; i++) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: puffTex, color: V.color, transparent: true, depthWrite: false, opacity: 0 }));
+    s.position.copy(pos).addScaledVector(randDir(), rand(0, 0.6));
+    const v = randDir().multiplyScalar(rand(1.5, 5)), s0 = rand(0.8, 1.4), s1 = rand(3, 5.5);
+    addFx(s, rand(0.7, 1.2), (f, dt, k) => {
+      v.multiplyScalar(Math.pow(0.2, dt)); s.position.addScaledVector(v, dt);
+      s.scale.setScalar(s0 + (s1 - s0) * Math.sqrt(k)); s.material.opacity = 0.8 * (1 - k);
+    });
+  }
+  burst(pos, [V.spark, 0xffffff], 20, 10, 0.1);
+  const sp = toScreen(pos);
+  popup(V.label, sp.x, sp.y, 'miss');
+  buzz([50, 30, 50]);
+  game.shake = Math.max(game.shake, 0.4);
+  if (e.variant === 'smoke') { game.smoke = 3.5; play('smokeBomb'); }
+  else { game.mirror = 4; play('mirrorBomb'); pointerDown = false; last = null; }
+  track('bomb');
+}
+
 function explodeBomb(e) {
+  if (e.variant) return variantBomb(e);
   removeEntity(e);
   const pos = e.mesh.position;
   spawnExplosion(pos);
+  track('bomb');
   sfx.boom();
+  buzz([90, 40, 220]);
   const penalty = game.mode === 'play' && game.type === 'arcade';
   game.shake = penalty ? 1.0 : 1.4;
   game.slowmo = penalty ? 0.4 : 0.7; // brief slow motion for everything except the blast itself
@@ -1647,20 +2141,107 @@ function trySlice(ax, ay, bx, by) {
     const sp = toScreen(e.mesh.position);
     const r = screenRadius(e.mesh.position, e.radius);
     if (distToSegment(sp.x, sp.y, ax, ay, bx, by) < r) {
-      if (e.item) { if (e.appear > 0.6 && !shopOpen) selectItem(e, bx - ax, by - ay); }
+      if (e.item) { if (e.appear > 0.6 && !shopOpen && !progressOpen) selectItem(e, bx - ax, by - ay); }
       else if (e.bomb) explodeBomb(e);
+      else if (e.hp > 1 || performance.now() - (e.lastHit || 0) < 160) hitHardFruit(e, bx - ax, by - ay);
       else sliceFruit(e, bx - ax, by - ay);
     }
   }
+  // pieces of fruit that were already cut can be cut again, down to eighths
+  for (const h of [...halves]) {
+    if (h.age < 0.12 || h.phiLen < MIN_PIECE) continue; // fresh pieces can't be re-hit in the same instant
+    const c = pieceCenter(h), sp = toScreen(c);
+    if (distToSegment(sp.x, sp.y, ax, ay, bx, by) < screenRadius(c, pieceRadius(h))) slicePiece(h, bx - ax, by - ay);
+  }
+}
+
+// Hard fruit (coconut): each hit cracks it and bumps it back up, the last hit splits it
+function hitHardFruit(e, dx, dy) {
+  const now = performance.now();
+  if (now - (e.lastHit || 0) < 160) return; // one hit per swipe pass
+  e.lastHit = now;
+  e.hp--;
+  const body = e.mesh.children[0];
+  if (!e.golden && e.def.crackMats) body.material = e.def.crackMats[e.def.hp - e.hp];
+  const swipe = new THREE.Vector3(dx, -dy, 0).normalize();
+  e.vel.addScaledVector(swipe, 3); e.vel.y = Math.max(e.vel.y, 5);
+  e.spin.multiplyScalar(1.6);
+  const pos = e.mesh.position;
+  // husk chips fly off
+  for (let i = 0; i < 9; i++) {
+    const m = new THREE.Mesh(pulpGeo, pulpMat(i % 3 ? 0x4a2d17 : 0x8a6038));
+    m.position.copy(pos).addScaledVector(randDir(), e.radius * 0.8);
+    addPart(m, randDir().multiplyScalar(rand(3, 7)).add(new THREE.Vector3(0, 2, 0)), rand(0.6, 1), rand(0.05, 0.1) * e.scale, 'chunk',
+      { spin: new THREE.Vector3(rand(-14, 14), rand(-14, 14), rand(-14, 14)) });
+  }
+  const sp = toScreen(pos);
+  knifeImpact(sp.x, sp.y, dx, dy, screenRadius(pos, e.radius) * 0.6);
+  popup(e.hp === 1 ? 'CRACK!!' : 'CRACK!', sp.x, sp.y - 30, 'piece');
+  play('hardHit'); buzz(25);
+  game.shake = Math.max(game.shake, 0.25);
+}
+
+const MIN_PIECE = Math.PI / 4 + 1e-3; // halves -> quarters -> eighths
+// world-space center of a wedge (its mass sits away from the fruit axis)
+function pieceCenter(h) {
+  const mid = h.phiStart + h.phiLen / 2, rr = h.def.r * (0.25 + 0.2 * (h.phiLen / Math.PI));
+  h.m.updateMatrixWorld();
+  return new THREE.Vector3(Math.sin(mid) * rr, 0, Math.cos(mid) * rr).applyMatrix4(h.m.matrixWorld);
+}
+const pieceRadius = (h) => h.def.extent * h.scale * (0.5 + 0.4 * h.phiLen / Math.PI);
+
+function slicePiece(h, dx, dy) {
+  const idx = halves.indexOf(h); if (idx < 0) return;
+  const c = pieceCenter(h);
+  halves.splice(idx, 1); scene.remove(h.m);
+  const half = h.phiLen / 2, mid = h.phiStart + half;
+  // new cut plane goes through the fruit axis at the wedge's middle angle
+  const nWorld = new THREE.Vector3(Math.cos(mid), 0, -Math.sin(mid)).transformDirection(h.m.matrixWorld);
+  const swipe = new THREE.Vector3(dx, -dy, 0).normalize();
+  for (const [start, s] of [[h.phiStart, -1], [mid, 1]]) {
+    const p = makePiece(h.def, start, half, false);
+    p.position.copy(h.m.position); p.quaternion.copy(h.m.quaternion); p.scale.copy(h.m.scale);
+    scene.add(p);
+    halves.push({
+      m: p, def: h.def, phiStart: start, phiLen: half, age: 0,
+      vel: h.vel.clone().multiplyScalar(0.6).addScaledVector(nWorld, s * 3.2).addScaledVector(swipe, 2.5).add(new THREE.Vector3(0, 2.5, 0)),
+      axis: randDir(), spinSpeed: rand(-8, 8),
+      juice: h.juice, scale: h.scale, drips: 6, dripT: rand(0, 0.05), origin: h.origin,
+    });
+  }
+  // smaller juicy burst than the first cut
+  juiceBurst(c, h.def, swipe, h.scale * 0.75, 0.45);
+  const sp = toScreen(c), r = screenRadius(c, pieceRadius(h));
+  addSplat(sp.x, sp.y, h.def.juice, r * 0.55, dx, dy, h.def);
+  knifeImpact(sp.x, sp.y, dx, dy, r * 0.7);
+  sfx.slice(h.def);
+  buzz(8);
+  track('piece');
+
+  // Bonus: +1 per extra cut, and a big bonus for shredding one fruit into all 8 pieces quickly
+  const pts = addPoints(1);
+  if (pts) popup('+' + pts, sp.x, sp.y - 20, 'piece');
+  const o = h.origin;
+  if (o && half < MIN_PIECE && ++o.eighthCuts === 4 && !o.shredded) {
+    o.shredded = true;
+    if (performance.now() - o.t < 4000) {
+      const bonus = addPoints(5);
+      popup(bonus ? `SHREDDED! +${bonus}` : 'SHREDDED!', sp.x, sp.y - 50, 'combo');
+      play('shred'); buzz([20, 30, 40]);
+      track('shred');
+    }
+  }
+  if (pts) updateHud();
 }
 
 function startGame(type) {
   game.type = type;
   game.mode = 'play'; game.score = 0; game.lives = 3; game.elapsed = 0;
   game.spawnTimer = 0.6; game.queue = []; game.combo.count = 0;
-  game.freeze = game.frenzy = game.x2 = 0;
+  game.freeze = game.frenzy = game.x2 = game.smoke = game.mirror = 0;
   game.timeLeft = MODES[type].time; game.lastTick = Math.ceil(game.timeLeft);
   game.paused = false;
+  game.streak = 0; game.streakT = 0;
   goScreen(null); setShop(false);
   sfx.start();
   updateTimer(); updatePowers(); updateHud();
@@ -1669,12 +2250,14 @@ function startGame(type) {
 function gameOver() {
   game.mode = 'over';
   game.overAt = performance.now();
-  game.freeze = game.frenzy = game.x2 = 0;
+  game.freeze = game.frenzy = game.x2 = game.smoke = game.mirror = 0;
   updatePowers();
   for (const e of entities) e.noMiss = true;
   const on = scoring();
   const newBest = on && game.score > (save.best[game.type] || 0);
   if (newBest) save.best[game.type] = game.score;
+  track('games');
+  track('score', game.score, game.type);
   if (on) save.coins += game.score;
   play('over');
   if (on && game.score > 0) setTimeout(() => play('coins'), 700);
@@ -1694,14 +2277,45 @@ function miss(e) {
   const sp = toScreen(e.mesh.position);
   popup('✕', sp.x, H - 50, 'miss');
   sfx.miss();
+  buzz(60);
   updateHud();
   if (game.lives <= 0) { game.mode = 'dying'; setTimeout(gameOver, 400); }
 }
 
-const randomFruit = () => FRUITS[Math.floor(Math.random() * FRUITS.length)];
+const NORMAL_FRUITS = FRUITS.filter(f => !f.special);
+const randomFruit = () => NORMAL_FRUITS[Math.floor(Math.random() * NORMAL_FRUITS.length)];
+
+// Formation throws: fruit come in a readable shape instead of at random
+function schedulePattern() {
+  const kind = ['line', 'arc', 'fountain'][Math.floor(Math.random() * 3)];
+  const fruit = randomFruit(), mixed = Math.random() < 0.5;
+  const pick = () => (mixed ? randomFruit() : fruit);
+  let t = 0;
+  if (kind === 'line') {        // a neat row across the screen, left to right
+    const n = 5 + Math.floor(rand(0, 3)), peak = rand(viewH * 0.05, viewH / 2 - 2.5);
+    for (let i = 0; i < n; i++) {
+      const x = (i / (n - 1) - 0.5) * viewW * 0.76;
+      game.queue.push({ t: i * 0.09, kind: pick(), x0: x, xTarget: x, peak });
+    }
+    t = n * 0.09;
+  } else if (kind === 'arc') {  // a stream thrown from one corner across to the other side
+    const dir = Math.random() < 0.5 ? 1 : -1, n = 6;
+    for (let i = 0; i < n; i++)
+      game.queue.push({ t: i * 0.14, kind: pick(), x0: -dir * viewW * 0.45, xTarget: dir * viewW * rand(0.3, 0.45), peak: rand(viewH * 0.1, viewH / 2 - 2) });
+    t = n * 0.14;
+  } else {                      // a fountain: everything launched from the middle, fanning out
+    const n = 6;
+    for (let i = 0; i < n; i++)
+      game.queue.push({ t: 0.02 * i, kind: pick(), x0: rand(-0.4, 0.4), xTarget: (i / (n - 1) - 0.5) * viewW * 0.7, peak: rand(viewH * 0.15, viewH / 2 - 1.5) });
+    t = 0.2;
+  }
+  game.spawnTimer = 2.2 + t;
+}
+
 function scheduleWave() {
   const T = game.type, timed = MODES[T].time;
   const diff = Math.min(1, game.elapsed / (timed || 90));
+  if (game.elapsed > 10 && Math.random() < 0.16) return schedulePattern();
   const count = 1 + Math.floor(Math.random() * (2 + diff * 4)) + (T === 'classic' ? 0 : 1);
   const bombChance = T === 'zen' ? 0 : T === 'arcade' ? 0.12 + diff * 0.1 : 0.1 + diff * 0.15;
   let bombs = 0;
@@ -1709,9 +2323,14 @@ function scheduleWave() {
   for (let i = 0; i < count; i++) {
     const isBomb = Math.random() < bombChance && bombs < 1 + Math.floor(diff * 2);
     if (isBomb) bombs++;
-    game.queue.push({ t: delay, kind: isBomb ? 'bomb' : randomFruit() });
+    // Arcade bombs can be smoke or mirror bombs
+    const variant = isBomb && T === 'arcade' ? [null, null, 'smoke', 'mirror'][Math.floor(Math.random() * 4)] : null;
+    game.queue.push({ t: delay, kind: isBomb ? 'bomb' : randomFruit(), variant });
     delay += Math.random() < 0.5 ? 0 : rand(0.1, 0.35);
   }
+  // Special fruit: a rare golden fruit, or a hard coconut
+  if (game.elapsed > 5 && Math.random() < 0.08) game.queue.push({ t: delay + 0.15, kind: randomFruit(), golden: true });
+  if (game.elapsed > 8 && Math.random() < 0.07) game.queue.push({ t: delay + 0.3, kind: FRUITS.find(f => f.id === 'coconut'), peak: rand(viewH * 0.15, viewH / 2 - 2) });
   // Arcade: sometimes one glowing power-up fruit joins the wave
   if (T === 'arcade' && Math.random() < 0.2) {
     const keys = Object.keys(POWERS);
@@ -1723,10 +2342,11 @@ function scheduleWave() {
 // ---------- Input & trail ----------
 let pointerDown = false, last = null, swipeId = 0;
 const trail = [];
-function pt(ev) { return { x: ev.clientX, y: ev.clientY, t: performance.now(), id: swipeId }; }
+// While a mirror bomb is active, swipes land on the opposite side of the screen
+function pt(ev) { return { x: game.mirror > 0 ? W - ev.clientX : ev.clientX, y: ev.clientY, t: performance.now(), id: swipeId }; }
 addEventListener('pointerdown', (ev) => {
   audio();
-  if (shopOpen || game.paused) return;
+  if (shopOpen || progressOpen || game.paused) return;
   pointerDown = true; swipeId++;
   last = pt(ev); trail.push(last);
   swipeDist = 0; lastSwipeSound = 0;
@@ -2019,15 +2639,16 @@ function frame() {
 
   if (game.mode === 'play') {
     game.elapsed += dt;
+    if (scoring()) save.stats.playTime += dt;
     game.spawnTimer -= dt;
     if (game.spawnTimer <= 0) scheduleWave();
     for (let i = game.queue.length - 1; i >= 0; i--) {
       const q = game.queue[i]; q.t -= dt;
-      if (q.t <= 0) { spawnEntity(q.kind, { power: q.power }); game.queue.splice(i, 1); }
+      if (q.t <= 0) { spawnEntity(q.kind, q); game.queue.splice(i, 1); } // q carries power/variant/golden/launch overrides
     }
 
-    // Power-ups (Arcade)
-    for (const k of Object.keys(POWERS)) if (game[k] > 0) game[k] = Math.max(0, game[k] - dt);
+    // Power-ups (Arcade) and bomb handicaps
+    for (const k of [...Object.keys(POWERS), 'smoke', 'mirror']) if (game[k] > 0) game[k] = Math.max(0, game[k] - dt);
     if (game.frenzy > 0) { // a rapid stream of fruit, no bombs
       game.frenzyTimer -= dt;
       if (game.frenzyTimer <= 0) { spawnEntity(randomFruit()); game.frenzyTimer = 0.13; }
@@ -2051,13 +2672,23 @@ function frame() {
       }
     }
 
+    if (game.streakT > 0 && (game.streakT -= dt) <= 0) { game.streak = 0; updateHud(); }
+    updateStreakHud();
+
     const c = game.combo;
     if (c.count > 0 && game.elapsed - c.last > 0.3) {
       if (c.count >= 3) {
-        const bonus = scoring() ? c.count * (game.x2 > 0 ? 2 : 1) : 0;
-        game.score += bonus;
+        const bonus = addPoints(c.count);
         popup(`${c.count} Fruit Combo!${bonus ? ' +' + bonus : ''}`, c.x, c.y, 'combo');
         sfx.combo(c.count);
+        buzz(30);
+        track('combo', c.count);
+        // chained combos build a streak multiplier that drains if you stop comboing
+        if (scoring()) {
+          game.streak = Math.min(4, (game.streak || 0) + 1);
+          game.streakT = STREAK_TIME;
+          if (game.streak > 0) setTimeout(() => popup(`STREAK ×${1 + game.streak}`, c.x, c.y + 50, 'streak'), 250);
+        }
         updateHud();
       }
       c.count = 0;
@@ -2097,6 +2728,7 @@ function frame() {
     h.vel.y -= G * wdt;
     h.m.position.addScaledVector(h.vel, wdt);
     h.m.rotateOnWorldAxis(h.axis, h.spinSpeed * wdt);
+    h.age = (h.age || 0) + wdt;
     // halves keep dripping juice while they fall
     if (h.drips > 0 && (h.dripT -= wdt) <= 0) {
       h.drips--; h.dripT = rand(0.04, 0.11);
